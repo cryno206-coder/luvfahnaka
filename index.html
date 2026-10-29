@@ -1,0 +1,3336 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EXAM SPACE - Bilingual Exam Practice</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- React & React DOM -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <!-- Babel for JSX -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <!-- Chart.js for Analytics -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Google Fonts Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          colors: {
+            neu: {
+              base: '#E8E8E8',
+              dark: '#202124',
+              surface: '#E8E8E8',
+              surfaceDark: '#202124',
+              textLight: '#222222',
+              textDark: '#F3F3F3',
+              subLight: '#777777',
+              subDark: '#A5A5A5',
+              accent: '#3B82F6',
+              accentSuccess: '#10B981',
+              accentDanger: '#EF4444'
+            }
+          },
+          boxShadow: {
+            // Neumorphic shadows for Light mode
+            'neu-flat': '8px 8px 16px #c5c5c5, -8px -8px 16px #ffffff',
+            'neu-flat-sm': '4px 4px 8px #c5c5c5, -4px -4px 8px #ffffff',
+            'neu-pressed': 'inset 4px 4px 8px #c5c5c5, inset -4px -4px 8px #ffffff',
+            'neu-pressed-sm': 'inset 2px 2px 4px #c5c5c5, inset -2px -2px 4px #ffffff',
+            
+            // Neumorphic shadows for Dark mode
+            'neu-dark-flat': '8px 8px 16px #161719, -8px -8px 16px #2a2b2f',
+            'neu-dark-flat-sm': '4px 4px 8px #161719, -4px -4px 8px #2a2b2f',
+            'neu-dark-pressed': 'inset 4px 4px 8px #161719, inset -4px -4px 8px #2a2b2f',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      transition: background-color 0.3s ease, color 0.3s ease;
+      user-select: none;
+    }
+    
+    /* Custom Scrollbar for sleek Neumorphic UI */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(0,0,0,0.05);
+      border-radius: 10px;
+    }
+    .dark ::-webkit-scrollbar-track {
+      background: rgba(255,255,255,0.05);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(0,0,0,0.15);
+      border-radius: 10px;
+    }
+    .dark ::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,0.15);
+    }
+  </style>
+</head>
+<body class="bg-[#E8E8E8] dark:bg-[#202124] text-[#222222] dark:text-[#F3F3F3] min-h-screen">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useMemo, useRef } = React;
+
+    // --- ICON HELPER COMPONENT TO AVOID DOM CONFLICTS ---
+    function Icon({ name, className = "w-4 h-4" }) {
+      const spanRef = useRef(null);
+
+      useEffect(() => {
+        if (spanRef.current && window.lucide) {
+          spanRef.current.innerHTML = '';
+          const iEl = document.createElement('i');
+          iEl.setAttribute('data-lucide', name);
+          spanRef.current.appendChild(iEl);
+          window.lucide.createIcons({
+            icons: { [name]: window.lucide.icons[name] },
+            nameAttr: 'data-lucide'
+          });
+        }
+      }, [name]);
+
+      return <span ref={spanRef} className={`inline-flex items-center justify-center shrink-0 ${className}`} />;
+    }
+
+    // --- COMPLETE 88 QUESTIONS DATABASE ---
+    const rawExamData = [
+      // === SET 1 (22 Questions) ===
+      {
+        id: "s1_q1", examSetId: 1, questionNumber: 1, questionType: "mcq",
+        sourceLanguage: "en", topic: "Mobile Sensors",
+        translations: {
+          en: {
+            questionText: "What physical quantity and unit does an Accelerometer measure on mobile devices?",
+            options: [
+              "Angular velocity in rad/s",
+              "Force of acceleration in m/s² (or relative to gravity g)",
+              "Magnetic field strength in μT",
+              "Atmospheric pressure in hPa"
+            ],
+            explanation: "An accelerometer measures the static or dynamic force of acceleration applied to a device in m/s² or relative to Earth's gravity g."
+          },
+          th: {
+            questionText: "มาตรวัดความเร่ง (Accelerometer) บนอุปกรณ์เคลื่อนที่วัดปริมาณทางกายภาพและหน่วยใด?",
+            options: [
+              "ความเร็วเชิงมุม ในหน่วย rad/s",
+              "แรงความเร่ง ในหน่วย m/s² (หรือเปรียบเทียบกับความโน้มถ่วง g)",
+              "ความเข้มสนามแม่เหล็ก ในหน่วย μT",
+              "ความกดอากาศ ในหน่วย hPa"
+            ],
+            explanation: "Accelerometer วัดแรงความเร่งที่กระทำต่อตัวเครื่องทั้งในเชิงสถิตและพลวัต มีหน่วยเป็น m/s² หรือค่า g"
+          }
+        },
+        correctAnswer: "B"
+      },
+      {
+        id: "s1_q2", examSetId: 1, questionNumber: 2, questionType: "mcq",
+        sourceLanguage: "en", topic: "Mobile Sensors",
+        translations: {
+          en: {
+            questionText: "Which rotation axis corresponds to 'Yaw' (rotation around the Z-axis) on a smartphone?",
+            options: ["Beta (Roll)", "Gamma (Pitch)", "Alpha (Yaw)", "Delta"],
+            explanation: "Alpha represents rotation around the Z-axis (Yaw/Compass heading) in device orientation specifications."
+          },
+          th: {
+            questionText: "แกนหมุนใดที่สอดคล้องกับ 'Yaw' (การหมุนรอบแกน Z) บนสมาร์ตโฟน?",
+            options: ["Beta (Roll)", "Gamma (Pitch)", "Alpha (Yaw)", "Delta"],
+            explanation: "การหมุนรอบแกน Z ซึ่งชี้ออกจากหน้าจอเรียกว่า Alpha หรือ Yaw (ทิศเข็มทิศ)"
+          }
+        },
+        correctAnswer: "C"
+      },
+      {
+        id: "s1_q3", examSetId: 1, questionNumber: 3, questionType: "mcq",
+        sourceLanguage: "en", topic: "BLE",
+        translations: {
+          en: {
+            questionText: "How many total channels are defined in Bluetooth Low Energy (BLE) compared to Bluetooth Classic (BR/EDR)?",
+            options: [
+              "32 channels (BLE) vs 79 channels (Classic)",
+              "40 channels (BLE) vs 79 channels (Classic)",
+              "79 channels (BLE) vs 40 channels (Classic)",
+              "3 channels (BLE) vs 32 channels (Classic)"
+            ],
+            explanation: "BLE defines 40 channels (2 MHz bandwidth) while Bluetooth Classic uses 79 channels (1 MHz bandwidth) in the 2.4 GHz ISM band."
+          },
+          th: {
+            questionText: "Bluetooth Low Energy (BLE) กำหนดจำนวนช่องสัญญาณทั้งหมดกี่ช่อง เมื่อเทียบกับ Bluetooth Classic (BR/EDR)?",
+            options: [
+              "32 ช่อง (BLE) vs 79 ช่อง (Classic)",
+              "40 ช่อง (BLE) vs 79 ช่อง (Classic)",
+              "79 ช่อง (BLE) vs 40 ช่อง (Classic)",
+              "3 ช่อง (BLE) vs 32 ช่อง (Classic)"
+            ],
+            explanation: "BLE แบ่งย่านความถี่เป็น 40 ช่องสัญญาณ (ความกว้าง 2 MHz) ในขณะที่ Bluetooth Classic แบ่งเป็น 79 ช่องสัญญาณ (ความกว้าง 1 MHz)"
+          }
+        },
+        correctAnswer: "B"
+      },
+      {
+        id: "s1_q4", examSetId: 1, questionNumber: 4, questionType: "mcq",
+        sourceLanguage: "en", topic: "BLE",
+        translations: {
+          en: {
+            questionText: "How many dedicated channels does BLE use for primary advertising and device discovery?",
+            options: ["3 channels", "10 channels", "32 channels", "40 channels"],
+            explanation: "BLE uses 3 dedicated primary advertising channels (Channels 37, 38, and 39) to avoid interference with Wi-Fi channels 1, 6, and 11."
+          },
+          th: {
+            questionText: "BLE ใช้ช่องสัญญาณหลักสำหรับการกระจายสัญญาณ (Primary Advertising) และการค้นหาอุปกรณ์กี่ช่อง?",
+            options: ["3 ช่อง", "10 ช่อง", "32 ช่อง", "40 ช่อง"],
+            explanation: "BLE ใช้ 3 ช่องสัญญาณเฉพาะ (ช่อง 37, 38, 39) ในการโฆษณาตนเองเพื่อหลีกเลี่ยงการชนกับสัญญาณ Wi-Fi"
+          }
+        },
+        correctAnswer: "A"
+      },
+      {
+        id: "s1_q5", examSetId: 1, questionNumber: 5, questionType: "mcq",
+        sourceLanguage: "en", topic: "GATT",
+        translations: {
+          en: {
+            questionText: "In the Generic ATTribute Profile (GATT) hierarchy, what is the correct top-to-bottom structural order?",
+            options: [
+              "Service -> Profile -> Characteristic -> Value",
+              "Profile -> Service -> Characteristic -> Value / Properties / Descriptor",
+              "Characteristic -> Service -> Profile -> Descriptor",
+              "Profile -> Characteristic -> Service -> Properties"
+            ],
+            explanation: "Profile sits at top encapsulation, containing one or more Services, which contain Characteristics (containing Value, Properties, Descriptors)."
+          },
+          th: {
+            questionText: "ในลำดับชั้นของ Generic ATTribute Profile (GATT) โครงสร้างจากบนลงล่างข้อใดถูกต้อง?",
+            options: [
+              "Service -> Profile -> Characteristic -> Value",
+              "Profile -> Service -> Characteristic -> Value / Properties / Descriptor",
+              "Characteristic -> Service -> Profile -> Descriptor",
+              "Profile -> Characteristic -> Service -> Properties"
+            ],
+            explanation: "โครงสร้างระดับบนสุดคือ Profile -> ประกอบด้วย Service -> ประกอบด้วย Characteristic ซึ่งเก็บ Value / Properties / Descriptor"
+          }
+        },
+        correctAnswer: "B"
+      },
+      {
+        id: "s1_q6", examSetId: 1, questionNumber: 6, questionType: "mcq",
+        sourceLanguage: "en", topic: "GATT",
+        translations: {
+          en: {
+            questionText: "According to the Bluetooth SIG standard, what is the bit length of a Custom Service UUID versus an Official Profile UUID?",
+            options: [
+              "Custom: 16-bit, Official: 128-bit",
+              "Custom: 32-bit, Official: 64-bit",
+              "Custom: 128-bit, Official: 16-bit",
+              "Custom: 64-bit, Official: 32-bit"
+            ],
+            explanation: "Bluetooth SIG adopts 16-bit (or 32-bit) UUIDs for official standardized profiles, while custom developer UUIDs must be 128-bit."
+          },
+          th: {
+            questionText: "ตามมาตรฐาน Bluetooth SIG ความยาวบิตของ Custom Service UUID เปรียบเทียบกับ Official Profile UUID เป็นอย่างไร?",
+            options: [
+              "Custom: 16-bit, Official: 128-bit",
+              "Custom: 32-bit, Official: 64-bit",
+              "Custom: 128-bit, Official: 16-bit",
+              "Custom: 64-bit, Official: 32-bit"
+            ],
+            explanation: "UUID ทางการกำหนดโดย Bluetooth SIG มีความยาว 16 บิต ส่วน Custom UUID ของผู้พัฒนาต้องเป็น 128 บิต"
+          }
+        },
+        correctAnswer: "C"
+      },
+      {
+        id: "s1_q7", examSetId: 1, questionNumber: 7, questionType: "mcq",
+        sourceLanguage: "en", topic: "React Native / BLE",
+        translations: {
+          en: {
+            questionText: "When writing characteristic values or receiving data in `react-native-ble-plx`, what encoding format must the string data be converted to/from?",
+            options: ["Hexadecimal", "Base64", "UTF-16", "Binary ASCII string directly"],
+            explanation: "react-native-ble-plx requires raw byte payloads to be encoded/decoded as Base64 strings when passing data between JS and Native layers."
+          },
+          th: {
+            questionText: "เมื่อทำการเขียนค่า Characteristic หรือรับข้อมูลใน `react-native-ble-plx` รูปแบบข้อมูลข้อความต้องถูกแปลงเข้า/ออกจากฟอร์แมตใด?",
+            options: ["Hexadecimal", "Base64", "UTF-16", "Binary ASCII string directly"],
+            explanation: "ไลบรารี `react-native-ble-plx` กำหนดให้ส่งผ่านและรับข้อมูลในรูปแบบข้อความเข้ารหัส Base64"
+          }
+        },
+        correctAnswer: "B"
+      },
+      {
+        id: "s1_q8", examSetId: 1, questionNumber: 8, questionType: "mcq",
+        sourceLanguage: "en", topic: "BLE",
+        translations: {
+          en: {
+            questionText: "An iBeacon or Eddystone device broadcasting location data without requiring a 1-on-1 paired connection operates in which BLE mode?",
+            options: [
+              "Connection-Oriented (PicoNet)",
+              "Connectionless (Broadcaster / Observer)",
+              "Dual-Stream Synchronization",
+              "Mesh Central Master"
+            ],
+            explanation: "Beacons broadcast advertising packets continuously without forming pairwise GATT connections, operating as Connectionless Broadcasters."
+          },
+          th: {
+            questionText: "อุปกรณ์ iBeacon หรือ Eddystone ที่กระจายข้อมูลตำแหน่งโดยไม่จำเป็นต้องจับคู่แบบ 1 ต่อ 1 ทำงานในโหมด BLE ใด?",
+            options: [
+              "Connection-Oriented (PicoNet)",
+              "Connectionless (Broadcaster / Observer)",
+              "Dual-Stream Synchronization",
+              "Mesh Central Master"
+            ],
+            explanation: "ทำงานในรูปแบบการส่งข้อมูลทิศทางเดียวโดยไม่มีการเชื่อมต่อ (Connectionless Broadcaster/Observer)"
+          }
+        },
+        correctAnswer: "B"
+      },
+      {
+        id: "s1_q9", examSetId: 1, questionNumber: 9, questionType: "mcq",
+        sourceLanguage: "en", topic: "Expo Location",
+        translations: {
+          en: {
+            questionText: "In Expo Location, which function is used to convert latitude and longitude coordinates into a readable address (street, region)?",
+            options: [
+              "Location.getCurrentPositionAsync()",
+              "Location.requestForegroundPermissionsAsync()",
+              "Location.reverseGeocodeAsync()",
+              "Location.geocodePositionAsync()"
+            ],
+            explanation: "Reverse geocoding takes latitude and longitude coordinates and returns human-readable postal address records."
+          },
+          th: {
+            questionText: "ใน Expo Location ฟังก์ชันใดใช้สำหรับแปลงพิกัดละติจูดและลองจิจูดให้เป็นที่อยู่ที่อ่านได้ (ถนน, จังหวัด)?",
+            options: [
+              "Location.getCurrentPositionAsync()",
+              "Location.requestForegroundPermissionsAsync()",
+              "Location.reverseGeocodeAsync()",
+              "Location.geocodePositionAsync()"
+            ],
+            explanation: "Reverse Geocoding เป็นกระบวนการแปลงพิกัดพิกัดทางภูมิศาสตร์ (Lat/Long) เป็นที่อยู่ทางกายภาพ"
+          }
+        },
+        correctAnswer: "C"
+      },
+      {
+        id: "s1_q10", examSetId: 1, questionNumber: 10, questionType: "mcq",
+        sourceLanguage: "en", topic: "Android / Expo",
+        translations: {
+          en: {
+            questionText: "Which Android permission in `app.json` / `AndroidManifest.xml` provides high-accuracy GPS location access?",
+            options: [
+              "android.permission.ACCESS_FINE_LOCATION",
+              "android.permission.ACCESS_COARSE_LOCATION",
+              "android.permission.LOCATION_ALWAYS",
+              "android.permission.GPS_HARDWARE"
+            ],
+            explanation: "ACCESS_FINE_LOCATION grants precise location measurements using hardware GPS."
+          },
+          th: {
+            questionText: "การขอสิทธิ์ Android ข้อใดใน `app.json` / `AndroidManifest.xml` ให้การเข้าถึงตำแหน่ง GPS ที่มีความแม่นยำสูง?",
+            options: [
+              "android.permission.ACCESS_FINE_LOCATION",
+              "android.permission.ACCESS_COARSE_LOCATION",
+              "android.permission.LOCATION_ALWAYS",
+              "android.permission.GPS_HARDWARE"
+            ],
+            explanation: "ACCESS_FINE_LOCATION ช่วยให้แอปได้รับพิกัดตำแหน่งที่ละเอียดแม่นยำจากชิป GPS"
+          }
+        },
+        correctAnswer: "A"
+      },
+      {
+        id: "s1_q11", examSetId: 1, questionNumber: 11, questionType: "mcq",
+        sourceLanguage: "en", topic: "React Native Maps",
+        translations: {
+          en: {
+            questionText: "To render Google Maps explicitly on both Android and iOS in `react-native-maps`, which property should be assigned to the `<MapView>` component?",
+            options: [
+              'mapType="google"',
+              "provider={PROVIDER_GOOGLE}",
+              'engine="GoogleMaps"',
+              'sdk="google-maps-v2"'
+            ],
+            explanation: "Setting provider={PROVIDER_GOOGLE} ensures Apple Maps isn't defaulted on iOS devices and uses Google's rendering engine."
+          },
+          th: {
+            questionText: "การกำหนดให้แสดงผล Google Maps ทั้งบน Android และ iOS ใน `react-native-maps` ต้องกำหนดคุณสมบัติใดให้คอมโพเนนต์ `<MapView>`?",
+            options: [
+              'mapType="google"',
+              "provider={PROVIDER_GOOGLE}",
+              'engine="GoogleMaps"',
+              'sdk="google-maps-v2"'
+            ],
+            explanation: "การใส่ `provider={PROVIDER_GOOGLE}` จะบังคับให้ทั้งสองระบบปฏิบัติการใช้บริการแสดงผลของ Google Maps"
+          }
+        },
+        correctAnswer: "B"
+      },
+      {
+        id: "s1_q12", examSetId: 1, questionNumber: 12, questionType: "mcq",
+        sourceLanguage: "en", topic: "Android / Maps Security",
+        translations: {
+          en: {
+            questionText: "To restrict a Google Maps API Key specifically for an Android app in Google Cloud Console, which two items are required?",
+            options: [
+              "Package Name & SHA-1 Certificate Fingerprint",
+              "App Title & Developer Email",
+              "IP Address & Domain Name",
+              "Gradle Version & SDK Target Level"
+            ],
+            explanation: "Android restrictions on GCP Console require matching the application's Package Name and its signing certificate's SHA-1 fingerprint."
+          },
+          th: {
+            questionText: "การจำกัดสิทธิ์ใช้งาน Google Maps API Key เจาะจงสำหรับแอป Android บน Google Cloud Console ต้องใช้ข้อมูล 2 ส่วนใด?",
+            options: [
+              "Package Name & SHA-1 Certificate Fingerprint",
+              "App Title & Developer Email",
+              "IP Address & Domain Name",
+              "Gradle Version & SDK Target Level"
+            ],
+            explanation: "การจำกัดสิทธิ์แอป Android บน Google Cloud ต้องการ Package Name ของแอปและค่า SHA-1 ลายพิมพ์นิ้วมือใบรับรอง"
+          }
+        },
+        correctAnswer: "A"
+      },
+      {
+        id: "s1_q13", examSetId: 1, questionNumber: 13, questionType: "mcq",
+        sourceLanguage: "en", topic: "Android Tools",
+        translations: {
+          en: {
+            questionText: "Which command is used to generate or view the debug SHA-1 certificate fingerprint on Windows/Mac?",
+            options: [
+              "adb get-fingerprint",
+              "keytool -list -v -keystore ...",
+              "git log --fingerprint",
+              "gradlew sha1"
+            ],
+            explanation: "Java's keytool binary is used to inspect keystore files and print SHA-1 and SHA-256 certificate signatures."
+          },
+          th: {
+            questionText: "คำสั่งใดใช้สร้างหรือเรียกดูค่า debug SHA-1 certificate fingerprint บนระบบปฏิบัติการ Windows/Mac?",
+            options: [
+              "adb get-fingerprint",
+              "keytool -list -v -keystore ...",
+              "git log --fingerprint",
+              "gradlew sha1"
+            ],
+            explanation: "ใช้ยูทิลิตี `keytool` ของ Java JDK ในการเปิดอ่านลายเซ็น SHA-1 จากไฟล์ .keystore"
+          }
+        },
+        correctAnswer: "B"
+      },
+      {
+        id: "s1_q14", examSetId: 1, questionNumber: 14, questionType: "mcq",
+        sourceLanguage: "en", topic: "Expo Sensors",
+        translations: {
+          en: {
+            questionText: "In Expo Sensors (Accelerometer/Gyroscope), which method sets the data update rate to every 500ms?",
+            options: [
+              "Accelerometer.setUpdateInterval(500)",
+              "Accelerometer.setIntervalRate(500)",
+              "Accelerometer.setFetchFrequency(500)",
+              "Accelerometer.setListenerSpeed(500)"
+            ],
+            explanation: "setUpdateInterval(intervalMs) configures how frequently sensor events fire in Expo sensor modules."
+          },
+          th: {
+            questionText: "ใน Expo Sensors (Accelerometer/Gyroscope) เมธอดใดใช้กำหนดความถี่การอัปเดตข้อมูลให้เกิดขึ้นทุกๆ 500ms?",
+            options: [
+              "Accelerometer.setUpdateInterval(500)",
+              "Accelerometer.setIntervalRate(500)",
+              "Accelerometer.setFetchFrequency(500)",
+              "Accelerometer.setListenerSpeed(500)"
+            ],
+            explanation: "`Accelerometer.setUpdateInterval(500)` กำหนดรอบเวลาอัปเดตข้อมูลเซนเซอร์ในหน่วยมิลลิวินาที"
+          }
+        },
+        correctAnswer: "A"
+      },
+      {
+        id: "s1_q15", examSetId: 1, questionNumber: 15, questionType: "mcq",
+        sourceLanguage: "en", topic: "ADB",
+        translations: {
+          en: {
+            questionText: "Which Android Debug Bridge (ADB) command displays real-time system log output for debugging?",
+            options: ["adb devices", "adb install", "adb logcat", "adb shell logs"],
+            explanation: "adb logcat streams system and application logs from the targeted Android container."
+          },
+          th: {
+            questionText: "คำสั่ง Android Debug Bridge (ADB) ข้อใดใช้แสดงผล Log ของระบบแบบเรียลไทม์เพื่อแก้ไขข้อผิดพลาด?",
+            options: ["adb devices", "adb install", "adb logcat", "adb shell logs"],
+            explanation: "`adb logcat` คือคำสั่งสำหรับแสดงผลระบบบันทึกเหตุการณ์ (Logs) ทั้งหมดของระบบ Android"
+          }
+        },
+        correctAnswer: "C"
+      },
+      {
+        id: "s1_q16", examSetId: 1, questionNumber: 16, questionType: "mcq",
+        sourceLanguage: "en", topic: "ADB",
+        translations: {
+          en: {
+            questionText: "Which ADB command installs a compiled Android application (.apk) onto a connected physical device or emulator?",
+            options: [
+              "adb push app.apk",
+              "adb install <path_to_apk>",
+              "adb run app.apk",
+              "adb build --install"
+            ],
+            explanation: "adb install <path_to_apk> transfers and installs an APK bundle to the connected device."
+          },
+          th: {
+            questionText: "คำสั่ง ADB ใดใช้ติดตั้งแอปพลิเคชัน Android ที่คอมไพล์แล้ว (.apk) ลงในเครื่องจริงหรือ Emulator?",
+            options: [
+              "adb push app.apk",
+              "adb install <path_to_apk>",
+              "adb run app.apk",
+              "adb build --install"
+            ],
+            explanation: "คำสั่ง `adb install` ตามด้วยพาธไฟล์แพ็กเกจจะทำการติดตั้งแอปพลิเคชันลงบนอุปกรณ์เป้าหมาย"
+          }
+        },
+        correctAnswer: "B"
+      },
+      {
+        id: "s1_q17", examSetId: 1, questionNumber: 17, questionType: "mcq",
+        sourceLanguage: "en", topic: "Android Architecture",
+        translations: {
+          en: {
+            questionText: "Which component serves as the primary UI screen container in native Android development?",
+            options: ["ViewController", "Activity", "Delegate", "Scene"],
+            explanation: "An Activity serves as the fundamental UI container and window context for user interactions in native Android."
+          },
+          th: {
+            questionText: "คอมโพเนนต์ใดทำหน้าที่เป็นคอนเทนเนอร์หน้าจอ UI หลักในการพัฒนาแอปพลิเคชัน Android แบบ Native?",
+            options: ["ViewController", "Activity", "Delegate", "Scene"],
+            explanation: "`Activity` คือส่วนประกอบหลักในการสร้างหน้าจอแสดงผล UI และจัดการปฏิสัมพันธ์กับผู้ใช้ใน Android"
+          }
+        },
+        correctAnswer: "B"
+      },
+      {
+        id: "s1_q18", examSetId: 1, questionNumber: 18, questionType: "mcq",
+        sourceLanguage: "en", topic: "iOS Architecture",
+        translations: {
+          en: {
+            questionText: "Which class serves as the primary view manager and lifecycle controller in iOS (UIKit)?",
+            options: ["UIActivity", "UIViewController", "UIViewContainer", "UIApplicationDelegate"],
+            explanation: "UIViewController is the backbone controller object in iOS UIKit for handling view hierarchy loading and screen lifecycle events."
+          },
+          th: {
+            questionText: "คลาสใดทำหน้าที่เป็นผู้จัดการหน้าจอ (View Manager) และตัวควบคุม วงจรชีวิตหน้าจอ (Lifecycle Controller) ใน iOS (UIKit)?",
+            options: ["UIActivity", "UIViewController", "UIViewContainer", "UIApplicationDelegate"],
+            explanation: "`UIViewController` เป็นคลาสพื้นฐานหลักในการจัดการวงจรชีวิตและการแสดงผลของ View บน iOS"
+          }
+        },
+        correctAnswer: "B"
+      },
+      {
+        id: "s1_q19", examSetId: 1, questionNumber: 19, questionType: "mcq",
+        sourceLanguage: "en", topic: "Testing",
+        translations: {
+          en: {
+            questionText: "Which level of testing checks individual units of code (such as pure functions or logic methods) in isolation?",
+            options: ["UI Testing", "Unit Testing", "Integration Testing", "End-to-End (E2E) Testing"],
+            explanation: "Unit testing tests individual isolated modules or functions without external dependencies."
+          },
+          th: {
+            questionText: "การทดสอบระดับใดเน้นตรวจสอบส่วนซอฟต์แวร์ย่อยแยกเดี่ยว (เช่น ฟังก์ชัน หรือ ลอจิกเมธอด) โดยไม่พึ่งพาส่วนอื่น?",
+            options: ["UI Testing", "Unit Testing", "Integration Testing", "End-to-End (E2E) Testing"],
+            explanation: "Unit Testing คือการเขียนทดสอบหน่วยย่อยสุดของโค้ดอย่างเป็นอิสระจากองค์ประกอบภายนอก"
+          }
+        },
+        correctAnswer: "B"
+      },
+      {
+        id: "s1_q20", examSetId: 1, questionNumber: 20, questionType: "mcq",
+        sourceLanguage: "en", topic: "iOS Distribution",
+        translations: {
+          en: {
+            questionText: "What is Apple's official service used for distributing beta builds of an iOS app to internal/external testers?",
+            options: ["Google Play Console", "TestFlight", "Expo Go", "App Store Connect Sandbox"],
+            explanation: "TestFlight is Apple's native test distribution platform for iOS applications."
+          },
+          th: {
+            questionText: "บริการทางการของ Apple ข้อใดใช้สำหรับแจกจ่ายแอปพลิเคชันเวอร์ชันทดสอบ (Beta Build) แก่นักทดสอบภายในและภายนอก?",
+            options: ["Google Play Console", "TestFlight", "Expo Go", "App Store Connect Sandbox"],
+            explanation: "`TestFlight` เป็นบริการอย่างเป็นทางการของ Apple สำหรับแจกจ่ายเวอร์ชันทดสอบให้กับระบบ iOS"
+          }
+        },
+        correctAnswer: "B"
+      },
+      {
+        id: "s1_q21", examSetId: 1, questionNumber: 21, questionType: "mcq",
+        sourceLanguage: "en", topic: "Git",
+        translations: {
+          en: {
+            questionText: "Which Git command stages all modified files in the current working directory?",
+            options: ["git status", "git commit -a", "git add .", "git push"],
+            explanation: "git add . stages all modified and newly created files in the present workspace path."
+          },
+          th: {
+            questionText: "คำสั่ง Git ข้อใดใช้เตรียมไฟล์ที่แก้ไขแล้วทั้งหมดในไดเรกทอรีปัจจุบันเข้าสู่ Staging Area?",
+            options: ["git status", "git commit -a", "git add .", "git push"],
+            explanation: "คำสั่ง `git add .` จะติดตามและนำการเปลี่ยนแปลงของไฟล์ทั้งหมดในโฟลเดอร์ปัจจุบันไปต่อคิว Staging"
+          }
+        },
+        correctAnswer: "C"
+      },
+      {
+        id: "s1_q22", examSetId: 1, questionNumber: 22, questionType: "mcq",
+        sourceLanguage: "en", topic: "Gradle / Android",
+        translations: {
+          en: {
+            questionText: "Which CLI command builds a debug APK using the Gradle build tool in Android development?",
+            options: [
+              "./gradlew build or ./gradlew assembleDebug",
+              "npm run android-build",
+              "adb assemble debug",
+              "flutter compile apk"
+            ],
+            explanation: "./gradlew assembleDebug is standard in Android projects to build unsigned debug APK artifacts."
+          },
+          th: {
+            questionText: "คำสั่ง CLI ใดใช้สร้างไฟล์ Debug APK โดยใช้เครื่องมือ Gradle ในโครงการพัฒนา Android?",
+            options: [
+              "./gradlew build หรือ ./gradlew assembleDebug",
+              "npm run android-build",
+              "adb assemble debug",
+              "flutter compile apk"
+            ],
+            explanation: "`./gradlew assembleDebug` เป็นคำสั่งมาตรฐานสำหรับสร้างไฟล์ทดสอบ `.apk` ในระบบ Gradle"
+          }
+        },
+        correctAnswer: "A"
+      },
+
+      // === SET 2 (22 Questions) ===
+      {
+        id: "s2_q1", examSetId: 2, questionNumber: 1, questionType: "mcq",
+        sourceLanguage: "ms", topic: "BLE vs Classic",
+        translations: {
+          en: {
+            questionText: "What is the primary data transmission difference between Bluetooth Classic (BR/EDR) and Bluetooth Low Energy (BLE)?",
+            options: [
+              "Bluetooth Classic is designed for intermittent data transfers.",
+              "BLE enables continuous streaming with low power.",
+              "Bluetooth Classic is used for continuous data streaming while BLE is used for short data bursts.",
+              "Both technologies share identical GATT profiles."
+            ],
+            explanation: "Bluetooth Classic provides continuous high-throughput audio/data streams, whereas BLE optimizes for low duty cycle short data packet bursts."
+          },
+          th: {
+            questionText: "ความแตกต่างหลักในการประมวลผลส่งข้อมูลระหว่าง Bluetooth Classic (BR/EDR) และ Bluetooth Low Energy (BLE) คืออะไร?",
+            options: [
+              "Bluetooth Classic ออกแบบมาเพื่อการส่งข้อมูลเป็นครั้งคราว (Intermittent)",
+              "BLE รองรับการส่งสตรีมข้อมูลต่อเนื่องด้วยพลังงานต่ำ",
+              "Bluetooth Classic ใช้สำหรับการส่งข้อมูลสตรีมมิ่งต่อเนื่อง ส่วน BLE ใช้สำหรับการส่งข้อมูลสั้นๆ เป็นช่วงๆ",
+              "ทั้งสองเทคโนโลยีใช้โครงสร้างโปรไฟล์ GATT แบบเดียวกัน"
+            ],
+            explanation: "Bluetooth Classic เหมาะกับการส่งข้อมูลต่อเนื่องขนาดใหญ่ (สตรีมมิ่งเสียง) ขณะที่ BLE ออกแบบมาส่งรับข้อมูลชุดเล็กเป็นช่วงๆ เพื่อประหยัดพลังงาน"
+          }
+        },
+        correctAnswer: "C"
+      },
+      {
+        id: "s2_q2", examSetId: 2, questionNumber: 2, questionType: "mcq",
+        sourceLanguage: "ms", topic: "GATT Structural Hierarchy",
+        translations: {
+          en: {
+            questionText: "In the GATT hierarchy structure, which components are contained under a Characteristic?",
+            options: [
+              "Profile and Service",
+              "Value, Properties, and Descriptor",
+              "Service and Descriptor",
+              "UUID only"
+            ],
+            explanation: "Characteristics encapsulate actual Data Values, Properties (Read/Write/Notify flags), and Descriptors."
+          },
+          th: {
+            questionText: "ในโครงสร้างลำดับชั้น GATT องค์ประกอบใดอยู่ภายใต้ระดับ Characteristic?",
+            options: [
+              "Profile และ Service",
+              "Value, Properties, และ Descriptor",
+              "Service และ Descriptor",
+              "UUID เท่านั้น"
+            ],
+            explanation: "ตัว Characteristic ประกอบด้วยส่วนเก็บข้อมูล (Value), คุณสมบัติการเข้าถึง (Properties) และคำอธิบายเพิ่มเติม (Descriptor)"
+          }
+        },
+        correctAnswer: "B"
+      },
+      {
+        id: "s2_q3", examSetId: 2, questionNumber: 3, questionType: "mcq",
+        sourceLanguage: "ms", topic: "React Native BLE",
+        translations: {
+          en: {
+            questionText: "In `react-native-ble-plx`, which method is used to subscribe to real-time live data streams (notifications) from a BLE device?",
+            options: [
+              "manager.readCharacteristicForDevice()",
+              "manager.writeCharacteristicWithResponseForDevice()",
+              "manager.monitorCharacteristicForDevice()",
+              "manager.discoverAllServicesAndCharacteristics()"
+            ],
+            explanation: "monitorCharacteristicForDevice creates an event listener subscription stream for BLE characteristic notifications."
+          },
+          th: {
+            questionText: "ในการพัฒนา React Native ด้วย `react-native-ble-plx` เมธอดใดใช้สำหรับกดรับข้อมูลสตรีมมิ่งเรียลไทม์ (Notifications) จากอุปกรณ์ BLE?",
+            options: [
+              "manager.readCharacteristicForDevice()",
+              "manager.writeCharacteristicWithResponseForDevice()",
+              "manager.monitorCharacteristicForDevice()",
+              "manager.discoverAllServicesAndCharacteristics()"
+            ],
+            explanation: "ใช้ `manager.monitorCharacteristicForDevice()` เพื่อรับฟีดข้อมูลแจ้งเตือนต่อเนื่องแบบเรียลไทม์"
+          }
+        },
+        correctAnswer: "C"
+      },
+      {
+        id: "s2_q4", examSetId: 2, questionNumber: 4, questionType: "mcq",
+        sourceLanguage: "ms", topic: "Expo Modules",
+        translations: {
+          en: {
+            questionText: "Which Expo package provides access to location coordinates (Latitude/Longitude) and reverse address resolution?",
+            options: ["expo-sensors", "expo-location", "react-native-maps", "react-native-ble-plx"],
+            explanation: "expo-location is Expo's framework library for positioning and geocoding services."
+          },
+          th: {
+            questionText: "แพ็กเกจ Expo ใดใช้สำหรับดึงค่าพิกัดตำแหน่ง (Latitude & Longitude) และข้อมูลที่อยู่ของอุปกรณ์?",
+            options: ["expo-sensors", "expo-location", "react-native-maps", "react-native-ble-plx"],
+            explanation: "`expo-location` เป็นชุดโมดูลสำหรับการเข้าถึง GPS และพิกัดภูมิศาสตร์"
+          }
+        },
+        correctAnswer: "B"
+      },
+      {
+        id: "s2_q5", examSetId: 2, questionNumber: 5, questionType: "mcq",
+        sourceLanguage: "ms", topic: "Expo Location",
+        translations: {
+          en: {
+            questionText: "Which method in `expo-location` converts latitude and longitude coordinates into structured address object data?",
+            options: [
+              "Location.getCurrentPositionAsync()",
+              "Location.requestForegroundPermissionsAsync()",
+              "Location.reverseGeocodeAsync()",
+              "Location.geocodeAsync()"
+            ],
+            explanation: "Location.reverseGeocodeAsync accepts GPS coordinate pairs and returns postal address attributes."
+          },
+          th: {
+            questionText: "เมธอดใดใน `expo-location` ใช้แปลงพิกัด (Latitude, Longitude) ให้เป็นข้อมูลที่อยู่?",
+            options: [
+              "Location.getCurrentPositionAsync()",
+              "Location.requestForegroundPermissionsAsync()",
+              "Location.reverseGeocodeAsync()",
+              "Location.geocodeAsync()"
+            ],
+            explanation: "`Location.reverseGeocodeAsync()` มีหน้าที่แปลง ละติจูด/ลองจิจูด กลับมาเป็นข้อความที่อยู่"
+          }
+        },
+        correctAnswer: "C"
+      },
+      {
+        id: "s2_q6", examSetId: 2, questionNumber: 6, questionType: "mcq",
+        sourceLanguage: "ms", topic: "React Native Maps",
+        translations: {
+          en: {
+            questionText: "Which component in `react-native-maps` is used to mark a pin point on top of the map view?",
+            options: ["<MapView>", "<Marker>", "<LocationPin>", "<MapAnnotation>"],
+            explanation: "<Marker> renders point of interest visual pins over a <MapView> container."
+          },
+          th: {
+            questionText: "คอมโพเนนต์ใดใน `react-native-maps` ทำหน้าที่ปักหมุดตำแหน่งลงบนแผนที่?",
+            options: ["<MapView>", "<Marker>", "<LocationPin>", "<MapAnnotation>"],
+            explanation: "`<Marker>` ใช้สำหรับการแสดงหมุดหรือสัญลักษณ์บนตำแหน่งพิกัดแผนที่"
+          }
+        },
+        correctAnswer: "B"
+      },
+      {
+        id: "s2_q7", examSetId: 2, questionNumber: 7, questionType: "mcq",
+        sourceLanguage: "ms", topic: "Expo Config",
+        translations: {
+          en: {
+            questionText: "Where must the Google Maps API Key be declared inside `app.json` for Android applications?",
+            options: [
+              "android.permissions",
+              "android.config.googleMaps.apiKey",
+              "plugins.expo-location",
+              "expo.sdkVersion"
+            ],
+            explanation: "Expo reads the key setting from android.config.googleMaps.apiKey during native prebuild steps."
+          },
+          th: {
+            questionText: "เพื่อให้ Google Maps ทำงานบน Android ได้ ต้องใส่ API Key ในตำแหน่งใดของไฟล์ `app.json`?",
+            options: [
+              "android.permissions",
+              "android.config.googleMaps.apiKey",
+              "plugins.expo-location",
+              "expo.sdkVersion"
+            ],
+            explanation: "ใส่คีย์ไว้ที่โครงสร้าง `android.config.googleMaps.apiKey` ในไฟล์กำหนดค่า Expo"
+          }
+        },
+        correctAnswer: "B"
+      },
+      {
+        id: "s2_q8", examSetId: 2, questionNumber: 8, questionType: "mcq",
+        sourceLanguage: "ms", topic: "Sensors",
+        translations: {
+          en: {
+            questionText: "Which sensor measures the angular velocity of device rotation around the X, Y, and Z axes?",
+            options: ["Accelerometer", "Magnetometer", "Gyroscope", "Proximity Sensor"],
+            explanation: "Gyroscopes measure rate of rotation (angular velocity) across 3D axes."
+          },
+          th: {
+            questionText: "เซนเซอร์ชนิดใดใช้วัดความเร็วเชิงมุม (Angular velocity) ของอุปกรณ์ขณะหมุนรอบแกน X, Y และ Z?",
+            options: ["Accelerometer", "Magnetometer", "Gyroscope", "Proximity Sensor"],
+            explanation: "`Gyroscope` ทำหน้าที่ตรวจจับอัตราการหมุนและความเร็วเชิงมุมรอบแกนพิกัด"
+          }
+        },
+        correctAnswer: "C"
+      },
+      {
+        id: "s2_q9", examSetId: 2, questionNumber: 9, questionType: "mcq",
+        sourceLanguage: "ms", topic: "Sensors Units",
+        translations: {
+          en: {
+            questionText: "What is the unit of measurement for data generated by a smartphone's Gyroscope sensor?",
+            options: ["Meter per second squared (m/s²)", "Radian per second (rad/s)", "Microtesla (μT)", "Hertz (Hz)"],
+            explanation: "Angular velocity is measured in radians per second (rad/s)."
+          },
+          th: {
+            questionText: "หน่วยวัดของข้อมูลที่ได้จากเซนเซอร์ Gyroscope บนสมาร์ตโฟนคืออะไร?",
+            options: ["เมตรต่อวินาทีกำลังสอง (m/s²)", "เรเดียนต่อวินาที (rad/s)", "ไมโครเทสลา (μT)", "เฮิรตซ์ (Hz)"],
+            explanation: "หน่วยมาตรฐานในการวัดการหมุนของไจโรสโคปคือ เรเดียนต่อวินาที (rad/s)"
+          }
+        },
+        correctAnswer: "B"
+      },
+      {
+        id: "s2_q10", examSetId: 2, questionNumber: 10, questionType: "mcq",
+        sourceLanguage: "ms", topic: "Orientation Axis",
+        translations: {
+          en: {
+            questionText: "The 'Beta' rotation angle in device sensors refers to motion around which axis?",
+            options: ["Z-axis (Yaw)", "X-axis (Roll)", "Y-axis (Pitch)", "Delta-axis"],
+            explanation: "Beta angle corresponds to front-to-back tilt around the X-axis (Pitch/Roll depending on system convention; Pitch in W3C)."
+          },
+          th: {
+            questionText: "การเคลื่อนที่ทางมุมค่า Beta ในเซนเซอร์หมายถึงการหมุนรอบแกนใด?",
+            options: ["แกน Z (Yaw)", "แกน X (Roll)", "แกน Y (Pitch)", "แกน Delta"],
+            explanation: "มุม Beta สอดคล้องกับการหมุนรอบแกน X"
+          }
+        },
+        correctAnswer: "B"
+      },
+      {
+        id: "s2_q11", examSetId: 2, questionNumber: 11, questionType: "mcq",
+        sourceLanguage: "ms", topic: "Expo Sensors",
+        translations: {
+          en: {
+            questionText: "In `expo-sensors`, which method configures the sensor sample update rate to 500ms?",
+            options: [
+              "Sensors.setRefreshRate(500)",
+              "Accelerometer.setUpdateInterval(500)",
+              "Accelerometer.setInterval(500)",
+              "Sensors.setSpeed(500)"
+            ],
+            explanation: "Accelerometer.setUpdateInterval(500) sets the sensor callback frequency."
+          },
+          th: {
+            questionText: "ในโค้ด `expo-sensors` เมธอดใดใช้กำหนดช่วงเวลาอัปเดตข้อมูลเซนเซอร์เป็น 500ms?",
+            options: [
+              "Sensors.setRefreshRate(500)",
+              "Accelerometer.setUpdateInterval(500)",
+              "Accelerometer.setInterval(500)",
+              "Sensors.setSpeed(500)"
+            ],
+            explanation: "ใช้เมธอด `Accelerometer.setUpdateInterval(500)`"
+          }
+        },
+        correctAnswer: "B"
+      },
+      {
+        id: "s2_q12", examSetId: 2, questionNumber: 12, questionType: "mcq",
+        sourceLanguage: "ms", topic: "Android Permissions",
+        translations: {
+          en: {
+            questionText: "On Android 12+ (API 31+), which runtime permission must be requested to allow connection to nearby BLE peripherals?",
+            options: [
+              "ACCESS_FINE_LOCATION",
+              "android.permission.BLUETOOTH_CONNECT",
+              "BLUETOOTH_ADMIN",
+              "INTERNET"
+            ],
+            explanation: "Android 12 introduced explicit BLUETOOTH_CONNECT runtime permissions decoupled from location access."
+          },
+          th: {
+            questionText: "บน Android 12+ สิทธิ์ใดต้องขอขณะ Runtime เพื่อเชื่อมต่อไปยังอุปกรณ์ BLE?",
+            options: [
+              "ACCESS_FINE_LOCATION",
+              "android.permission.BLUETOOTH_CONNECT",
+              "BLUETOOTH_ADMIN",
+              "INTERNET"
+            ],
+            explanation: "Android 12 เป็นต้นไปกำหนดสิทธิ์เฉพาะ `android.permission.BLUETOOTH_CONNECT` สำหรับการเชื่อมต่อ"
+          }
+        },
+        correctAnswer: "B"
+      },
+      {
+        id: "s2_q13", examSetId: 2, questionNumber: 13, questionType: "mcq",
+        sourceLanguage: "ms", topic: "React Native BLE Payload",
+        translations: {
+          en: {
+            questionText: "Why must text strings be encoded into Base64 format prior to calling `writeCharacteristicWithResponseForDevice`?",
+            options: [
+              "To encrypt payload security.",
+              "Because react-native-ble-plx library requires Base64 for cross-bridge raw data transmission.",
+              "To save RAM usage.",
+              "Because Bluetooth SIG prohibits ASCII format."
+            ],
+            explanation: "The React Native bridge uses Base64 encoding as standard for passing binary byte array buffers across JS/Native boundaries."
+          },
+          th: {
+            questionText: "ทำไมข้อมูลข้อความ (String) ต้องถูกแปลงเป็นรูปแบบ Base64 ก่อนส่งด้วยฟังก์ชัน `writeCharacteristicWithResponseForDevice`?",
+            options: [
+              "เพื่อเข้ารหัสความปลอดภัยข้อมูล",
+              "เพราะไลบรารี `react-native-ble-plx` กำหนดรับส่งไบนารีผ่าน Native Bridge ในรูปแบบ Base64",
+              "เพื่อลดการใช้งานความจำ RAM",
+              "เพราะ Bluetooth SIG ไม่รองรับข้อความ ASCII"
+            ],
+            explanation: "`react-native-ble-plx` ใช้ Base64 เป็นตัวกลางการสื่อสารข้อมูลดิบผ่าน Bridge"
+          }
+        },
+        correctAnswer: "B"
+      },
+      {
+        id: "s2_q14", examSetId: 2, questionNumber: 14, questionType: "mcq",
+        sourceLanguage: "ms", topic: "ADB",
+        translations: {
+          en: {
+            questionText: "What is the primary function of the `adb logcat` command during Android development?",
+            options: [
+              "Displays list of connected devices.",
+              "Installs APK packages onto device.",
+              "Prints real-time system log stream for debugging.",
+              "Executes unit test suite."
+            ],
+            explanation: "adb logcat displays real-time log statements emitted by system and app processes."
+          },
+          th: {
+            questionText: "หน้าที่หลักของคำสั่ง `adb logcat` ในการพัฒนาแอปพลิเคชัน Android คืออะไร?",
+            options: [
+              "แสดงรายการอุปกรณ์ที่เชื่อมต่ออยู่",
+              "ติดตั้งไฟล์ APK ลงในอุปกรณ์",
+              "แสดงผล Log ของระบบแบบเรียลไทม์เพื่อใช้ตรวจสอบและแก้ไขข้อผิดพลาด",
+              "สั่งรันแบบทดสอบ Unit Test"
+            ],
+            explanation: "แสดงสตรีมการบันทึกการทำงานแบบเรียลไทม์ (Logs) ของระบบเพื่อแก้ไขบั๊ก"
+          }
+        },
+        correctAnswer: "C"
+      },
+      {
+        id: "s2_q15", examSetId: 2, questionNumber: 15, questionType: "mcq",
+        sourceLanguage: "ms", topic: "Android Lifecycle",
+        translations: {
+          en: {
+            questionText: "Which Android Activity lifecycle callback method is triggered when the activity screen is no longer visible to the user?",
+            options: ["onPause()", "onStop()", "onDestroy()", "onResume()"],
+            explanation: "onStop() is called when the activity is completely obscured and invisible."
+          },
+          th: {
+            questionText: "สถานะวงจรชีวิต (Lifecycle) ใดของ Android Activity ที่จะถูกเรียกเมื่อแอปไม่ได้แสดงบนหน้าจอของผู้ใช้อีกต่อไป?",
+            options: ["onPause()", "onStop()", "onDestroy()", "onResume()"],
+            explanation: "เมธอด `onStop()` จะถูกเรียกเมื่อ Activity หลุดพ้นจากการมองเห็นของผู้ใช้โดยสมบูรณ์"
+          }
+        },
+        correctAnswer: "B"
+      },
+      {
+        id: "s2_q16", examSetId: 2, questionNumber: 16, questionType: "mcq",
+        sourceLanguage: "ms", topic: "iOS UIKit",
+        translations: {
+          en: {
+            questionText: "In iOS (UIKit), which class is responsible for managing the view hierarchy and screen lifecycle?",
+            options: ["UIActivity", "UIViewController", "UIView", "UIApplication"],
+            explanation: "UIViewController handles UI hierarchy creation, orientation, and presentation lifecycles."
+          },
+          th: {
+            questionText: "ในระบบ iOS (UIKit) คลาสใดมีหน้าที่รับผิดชอบการจัดการลำดับชั้นของหน้าจอ (View) และวงจรชีวิตของหน้าจอ?",
+            options: ["UIActivity", "UIViewController", "UIView", "UIApplication"],
+            explanation: "`UIViewController` เป็นผู้รับผิดชอบระบบลำดับชั้นวิวและสเตตของหน้าจอใน UIKit"
+          }
+        },
+        correctAnswer: "B"
+      },
+      {
+        id: "s2_q17", examSetId: 2, questionNumber: 17, questionType: "mcq",
+        sourceLanguage: "ms", topic: "Testing",
+        translations: {
+          en: {
+            questionText: "Which type of testing focuses on verifying the complete end-to-end user workflow and UI interactions?",
+            options: ["Unit Testing", "Integration Testing", "UI / End-to-End Testing", "Static Code Analysis"],
+            explanation: "UI / E2E testing simulates realistic user interactions across the full running UI application."
+          },
+          th: {
+            questionText: "การทดสอบประเภทใดที่เน้นตรวจสอบขั้นตอนการทำงานทั้งหมดของผู้ใช้และส่วนประสานผู้ใช้ (UI)?",
+            options: ["Unit Testing", "Integration Testing", "UI / End-to-End Testing", "Static Code Analysis"],
+            explanation: "UI / End-to-End Testing จำลองการทำงานของผู้ใช้จริงตั้งแต่ต้นจนจบโปรเซส"
+          }
+        },
+        correctAnswer: "C"
+      },
+      {
+        id: "s2_q18", examSetId: 2, questionNumber: 18, questionType: "ms", topic: "iOS Portal",
+        translations: {
+          en: {
+            questionText: "Which web platform is utilized by iOS developers to manage App Store submissions and developer credentials?",
+            options: ["TestFlight", "App Store Connect", "Google Play Console", "Xcode Cloud"],
+            explanation: "App Store Connect is Apple's main developer web platform for managing apps, metadata, and submissions."
+          },
+          th: {
+            questionText: "แพลตฟอร์มเว็บใดที่ผู้พัฒนา iOS ใช้สำหรับจัดการการส่งแอปพลิเคชันไปยัง App Store และการจัดการบัญชีผู้พัฒนา?",
+            options: ["TestFlight", "App Store Connect", "Google Play Console", "Xcode Cloud"],
+            explanation: "`App Store Connect` เป็นพอร์ทัลเว็บสำหรับจัดการการเสนออนุมัติแอปสู่ App Store"
+          }
+        },
+        correctAnswer: "B"
+      },
+      {
+        id: "s2_q19", examSetId: 2, questionNumber: 19, questionType: "mcq",
+        sourceLanguage: "ms", topic: "Git",
+        translations: {
+          en: {
+            questionText: "Which Git command displays the working tree status of modified, staged, or untracked files?",
+            options: ["git status", "git log", "git diff", "git branch"],
+            explanation: "git status summarizes modified, untracked, and staged files in the local workspace."
+          },
+          th: {
+            questionText: "คำสั่ง Git ใดใช้แสดงสถานะของไฟล์ที่ถูกแก้ไข เพิ่มใหม่ หรือยังไม่ได้ถูกติดตาม?",
+            options: ["git status", "git log", "git diff", "git branch"],
+            explanation: "`git status` ใช้ตรวจสอบสถานะไฟล์ต่างๆ ในพื้นที่ทำงานปัจจุบัน"
+          }
+        },
+        correctAnswer: "A"
+      },
+      {
+        id: "s2_q20", examSetId: 2, questionNumber: 20, questionType: "mcq",
+        sourceLanguage: "ms", topic: "Flutter CLI",
+        translations: {
+          en: {
+            questionText: "Which CLI command in a Flutter project fetches all dependencies declared in `pubspec.yaml`?",
+            options: ["flutter run", "flutter build apk", "flutter pub get", "flutter doctor"],
+            explanation: "flutter pub get resolves and installs package dependencies specified in pubspec.yaml."
+          },
+          th: {
+            questionText: "คำสั่ง CLI ใดใช้ในโปรเจกต์ Flutter เพื่อดึงไลบรารีทั้งหมดที่ระบุไว้ใน `pubspec.yaml`?",
+            options: ["flutter run", "flutter build apk", "flutter pub get", "flutter doctor"],
+            explanation: "คำสั่ง `flutter pub get` ใช้สำหรับดาวน์โหลดชุดแพ็กเกจที่ระบุไว้ในไฟล์กำหนดค่า"
+          }
+        },
+        correctAnswer: "C"
+      },
+      {
+        id: "s2_q21", examSetId: 2, questionNumber: 21, questionType: "mcq",
+        sourceLanguage: "ms", topic: "React Native CLI",
+        translations: {
+          en: {
+            questionText: "Which CLI command launches a React Native project onto an attached Android target?",
+            options: [
+              "npx react-native run-android",
+              "npm start android",
+              "./gradlew runAndroid",
+              "adb run-android"
+            ],
+            explanation: "npx react-native run-android builds and launches the debug build onto target Android devices."
+          },
+          th: {
+            questionText: "คำสั่ง CLI ใดใช้สั่งรันโปรเจกต์ React Native บนอุปกรณ์ Android?",
+            options: [
+              "npx react-native run-android",
+              "npm start android",
+              "./gradlew runAndroid",
+              "adb run-android"
+            ],
+            explanation: "`npx react-native run-android` สั่งคอมไพล์และเปิดรันแอปบน Android"
+          }
+        },
+        correctAnswer: "A"
+      },
+      {
+        id: "s2_q22", examSetId: 2, questionNumber: 22, questionType: "mcq",
+        sourceLanguage: "ms", topic: "Gradle",
+        translations: {
+          en: {
+            questionText: "Which Gradle task command compiles and creates a debug build (`.apk`) for Android?",
+            options: ["./gradlew compile", "./gradlew assembleDebug", "./gradlew buildRelease", "./gradlew installDebug"],
+            explanation: "./gradlew assembleDebug generates debug APK binaries in build/outputs/apk/debug/."
+          },
+          th: {
+            questionText: "คำสั่ง Gradle ข้อใดใช้สร้างไฟล์คอมไพล์สำหรับ Debug (`.apk`) สำหรับแอป Android?",
+            options: ["./gradlew compile", "./gradlew assembleDebug", "./gradlew buildRelease", "./gradlew installDebug"],
+            explanation: "`./gradlew assembleDebug` ทำการรวบรวมไฟล์คอมไพล์เป็น `.apk` เวอร์ชันดิบัด"
+          }
+        },
+        correctAnswer: "B"
+      },
+
+      // === SET 3 (22 Questions) ===
+      {
+        id: "s3_q1", examSetId: 3, questionNumber: 1, questionType: "mcq",
+        sourceLanguage: "en", topic: "Sensors",
+        translations: {
+          en: {
+            questionText: "Which mobile sensor measures the Earth's magnetic field strength along three axes to determine compass direction and heading?",
+            options: ["Accelerometer", "Gyroscope", "Magnetometer", "Barometer"],
+            explanation: "The Magnetometer detects geomagnetic field intensity to calculate magnetic North and direction headings."
+          },
+          th: {
+            questionText: "เซนเซอร์บนมือถือชนิดใดวัดความเข้มสนามแม่เหล็กโลกตาม 3 แกนเพื่อระบุทิศทางเข็มทิศ?",
+            options: ["Accelerometer", "Gyroscope", "Magnetometer", "Barometer"],
+            explanation: "`Magnetometer` วัดสนามแม่เหล็กรอบตัวเพื่อคำนวณหาทิศทางเข็มทิศ"
+          }
+        },
+        correctAnswer: "C"
+      },
+      {
+        id: "s3_q2", examSetId: 3, questionNumber: 2, questionType: "mcq",
+        sourceLanguage: "en", topic: "Location Services",
+        translations: {
+          en: {
+            questionText: "Which location-based concept involves creating a virtual geographical boundary that triggers an event when a device enters or leaves the area?",
+            options: ["Triangulation", "Geofencing", "Reverse Geocoding", "Dead Reckoning"],
+            explanation: "Geofencing sets virtual GPS perimeter perimeters that emit entry/exit callbacks when crossed."
+          },
+          th: {
+            questionText: "แนวคิดทางระบบตำแหน่งใดเกี่ยวข้องกับการสร้างขอบเขตทางภูมิศาสตร์จำลองเพื่อส่งแจ้งเตือนเมื่ออุปกรณ์เข้าหรือออกจากพื้นที่?",
+            options: ["Triangulation", "Geofencing", "Reverse Geocoding", "Dead Reckoning"],
+            explanation: "`Geofencing` คือการกำหนดรัศมีอาณาเขตเสมือนบนแผนที่เพื่อตรวจจับการเข้าออก"
+          }
+        },
+        correctAnswer: "B"
+      },
+      {
+        id: "s3_q3", examSetId: 3, questionNumber: 3, questionType: "mcq",
+        sourceLanguage: "en", topic: "React Native Maps",
+        translations: {
+          en: {
+            questionText: "In `react-native-maps`, which prop of the `<MapView>` component is used to define the initial location coordinates and zoom level when the map loads?",
+            options: ["currentLocation", "initialRegion", "defaultCoordinates", "viewport"],
+            explanation: "initialRegion expects latitude, longitude, latitudeDelta, and longitudeDelta values."
+          },
+          th: {
+            questionText: "ใน `react-native-maps` พร็อปใดของคอมโพเนนต์ `<MapView>` ใช้กำหนดพิกัดเริ่มต้นและระดับการซูมเมื่อแผนที่โหลดขึ้นมา?",
+            options: ["currentLocation", "initialRegion", "defaultCoordinates", "viewport"],
+            explanation: "ใช้พร็อป `initialRegion` ในการตั้งค่าพิกัดและระยะมุมมองเริ่มต้น"
+          }
+        },
+        correctAnswer: "B"
+      },
+      {
+        id: "s3_q4", examSetId: 3, questionNumber: 4, questionType: "mcq",
+        sourceLanguage: "en", topic: "GATT Communication",
+        translations: {
+          en: {
+            questionText: "In BLE GATT communication, what is the main difference between `Notify` and `Indicate` properties?",
+            options: [
+              "Notify requires an acknowledgment (ACK) from the Central device, while Indicate does not.",
+              "Indicate requires an acknowledgment (ACK) from the Central device, while Notify does not.",
+              "Notify transfers data faster using 128-bit UUID, while Indicate uses 16-bit UUID.",
+              "Notify works only on iOS, while Indicate works only on Android."
+            ],
+            explanation: "Indicates require an application-layer confirmation acknowledgment before sending the next packet, making it reliable; Notifications do not."
+          },
+          th: {
+            questionText: "ในการสื่อสาร BLE GATT คุณสมบัติ `Notify` และ `Indicate` มีความแตกต่างหลักอย่างไร?",
+            options: [
+              "Notify ต้องการการตอบรับ (ACK) จากอุปกรณ์ Central ในขณะที่ Indicate ไม่ต้องการ",
+              "Indicate ต้องการการตอบรับ (ACK) จากอุปกรณ์ Central ในขณะที่ Notify ไม่ต้องการ",
+              "Notify ส่งข้อมูลเร็วกว่าโดยใช้ 128-bit UUID ส่วน Indicate ใช้ 16-bit UUID",
+              "Notify ทำงานได้เฉพาะบน iOS ส่วน Indicate ทำงานได้เฉพาะบน Android"
+            ],
+            explanation: "`Indicate` ต้องมีการส่งการยืนยันรับข้อมูล (ACK) กลับมาจากฝั่งรับ ในขณะที่ `Notify` จะส่งออกอย่างเดียวโดยไม่รอ ACK"
+          }
+        },
+        correctAnswer: "B"
+      },
+      {
+        id: "s3_q5", examSetId: 3, questionNumber: 5, questionType: "mcq",
+        sourceLanguage: "en", topic: "Android Lifecycle",
+        translations: {
+          en: {
+            questionText: "Which lifecycle method in Android is called when an Activity becomes visible and enters the foreground to interact with the user?",
+            options: ["onCreate()", "onStart()", "onResume()", "onPause()"],
+            explanation: "onResume() is executed when the Activity active window comes to foreground readiness for direct touch interactions."
+          },
+          th: {
+            questionText: "วงจรชีวิตของ Android Activity ในเมธอดใดที่จะถูกเรียกเมื่อหน้าจอเข้าสู่สถานะ Foreground พร้อมปฏิสัมพันธ์กับผู้ใช้?",
+            options: ["onCreate()", "onStart()", "onResume()", "onPause()"],
+            explanation: "`onResume()` จะทำงานเมื่อหน้าจอ Activity นั้นอยู่ด้านหน้าสุดและพร้อมรับการกดสัมผัส"
+          }
+        },
+        correctAnswer: "C"
+      },
+      {
+        id: "s3_q6", examSetId: 3, questionNumber: 6, questionType: "mcq",
+        sourceLanguage: "en", topic: "iOS Lifecycle",
+        translations: {
+          en: {
+            questionText: "In iOS (UIKit) development, which method is invoked immediately after the controller's view hierarchy is loaded into memory?",
+            options: ["viewDidLoad()", "viewWillAppear()", "viewDidAppear()", "viewWillDisappear()"],
+            explanation: "viewDidLoad() runs right after view hierarchy creation in memory, ideal for initial state assignments."
+          },
+          th: {
+            questionText: "ในการพัฒนา iOS (UIKit) เมธอดใดถูกเรียกทำงานทันทีหลังจากส่วนแสดงผลของ Controller ถูกโหลดลงสู่หน่วยความจำเรียบร้อยแล้ว?",
+            options: ["viewDidLoad()", "viewWillAppear()", "viewDidAppear()", "viewWillDisappear()"],
+            explanation: "`viewDidLoad()` ถูกเรียกทันทีหลังจากโหลดเค้าโครงหน้าจอลงใน RAM"
+          }
+        },
+        correctAnswer: "A"
+      },
+      {
+        id: "s3_q7", examSetId: 3, questionNumber: 7, questionType: "mcq",
+        sourceLanguage: "en", topic: "Testing",
+        translations: {
+          en: {
+            questionText: "Which type of testing evaluates the interaction between two or more integrated units/modules?",
+            options: ["Unit Testing", "Integration Testing", "UI Testing", "Performance Testing"],
+            explanation: "Integration testing evaluates combined functionality between interconnected software sub-modules."
+          },
+          th: {
+            questionText: "การทดสอบประเภทใดประเมินปฏิสัมพันธ์ระหว่างโมดูลหรือส่วนประกอบซอฟต์แวร์ที่ถูกนำมารวมกันตั้งแต่ 2 ส่วนขึ้นไป?",
+            options: ["Unit Testing", "Integration Testing", "UI Testing", "Performance Testing"],
+            explanation: "Integration Testing คือการสอบวัดการทำงานร่วมกันระหว่างส่วนประกอบย่อย"
+          }
+        },
+        correctAnswer: "B"
+      },
+      {
+        id: "s3_q8", examSetId: 3, questionNumber: 8, questionType: "mcq",
+        sourceLanguage: "en", topic: "iOS Administration",
+        translations: {
+          en: {
+            questionText: "Which web portal provided by Apple is used to manage app metadata, submit app builds, and configure App Store releases?",
+            options: ["TestFlight", "Xcode Cloud", "App Store Connect", "Apple Developer Center"],
+            explanation: "App Store Connect handles app listings, screenshots, builds, pricing, and releases."
+          },
+          th: {
+            questionText: "เว็บพอร์ทัลใดที่ Apple จัดหาไว้ให้เพื่อจัดการรายละเอียดแอป ส่งไฟล์แอปพลิเคชัน และตั้งค่าการปล่อยแอปบน App Store?",
+            options: ["TestFlight", "Xcode Cloud", "App Store Connect", "Apple Developer Center"],
+            explanation: "`App Store Connect` คือพอร์ทัลทางการสำหรับบริหารจัดการข้อมูลแอป"
+          }
+        },
+        correctAnswer: "C"
+      },
+      {
+        id: "s3_q9", examSetId: 3, questionNumber: 9, questionType: "mcq",
+        sourceLanguage: "en", topic: "Google Play Console",
+        translations: {
+          en: {
+            questionText: "In Google Play Console, which testing track is intended for releasing builds to a specific, restricted list of internal testers before beta testing?",
+            options: ["Production Track", "Open Testing Track", "Internal / Closed Testing Track", "Instant App Track"],
+            explanation: "The Internal/Closed testing track allows instant distribution to up to 100 internal email testers without full store reviews."
+          },
+          th: {
+            questionText: "ใน Google Play Console ช่องทางทดสอบใด (Track) มีวัตถุประสงค์เพื่อแจกจ่ายเวอร์ชันให้แก่กลุ่มผู้ทดสอบภายในวงจำกัดก่อนเข้าสู่ Beta?",
+            options: ["Production Track", "Open Testing Track", "Internal / Closed Testing Track", "Instant App Track"],
+            explanation: "ช่องทาง `Internal / Closed Testing Track` มีไว้ปล่อยแอปวงในแบบรวดเร็ว"
+          }
+        },
+        correctAnswer: "C"
+      },
+      {
+        id: "s3_q10", examSetId: 3, questionNumber: 10, questionType: "mcq",
+        sourceLanguage: "en", topic: "React Native BLE",
+        translations: {
+          en: {
+            questionText: "What is the primary function of the `manager.discoverAllServicesAndCharacteristics()` call in `react-native-ble-plx` after establishing a device connection?",
+            options: [
+              "To pair the device using PIN code",
+              "To scan nearby BLE devices",
+              "To discover available services and characteristics before reading or writing data",
+              "To disconnect from the peripheral device"
+            ],
+            explanation: "GATT connection requires resolving service and characteristic database tables before read/write queries can execute."
+          },
+          th: {
+            questionText: "หน้าที่หลักของการเรียก `manager.discoverAllServicesAndCharacteristics()` ใน `react-native-ble-plx` หลังเชื่อมต่อสำเร็จคืออะไร?",
+            options: [
+              "เพื่อจับคู่อุปกรณ์ด้วยรหัส PIN",
+              "เพื่อค้นหาอุปกรณ์ BLE บริเวณใกล้เคียง",
+              "เพื่อสำรวจ Service และ Characteristic ที่เปิดให้บริการก่อนทำรายการอ่านหรือเขียนข้อมูล",
+              "เพื่อยกเลิกการเชื่อมต่อกับอุปกรณ์ปลายทาง"
+            ],
+            explanation: "ค้นหาโครงสร้าง Service และ Characteristic ทั้งหมดภายในตัวอุปกรณ์เพื่อพร้อมรับส่งค่า"
+          }
+        },
+        correctAnswer: "C"
+      },
+
+      // CLI / Short Answer Questions in Set 3 (11 - 22)
+      {
+        id: "s3_q11", examSetId: 3, questionNumber: 11, questionType: "short",
+        sourceLanguage: "en", topic: "ADB CLI",
+        translations: {
+          en: {
+            questionText: "Write the Android Debug Bridge (ADB) command to list all connected physical devices and emulators.",
+            options: [],
+            explanation: "The command 'adb devices' queries the daemon for currently attached Android instances."
+          },
+          th: {
+            questionText: "พิมพ์คำสั่ง Android Debug Bridge (ADB) สำหรับแสดงรายการอุปกรณ์เครื่องจริงและ Emulator ที่เชื่อมต่ออยู่ทั้งหมด",
+            options: [],
+            explanation: "ใช้คำสั่ง `adb devices` ในการตรวจสอบอุปกรณ์ Android ที่เชื่อมต่ออยู่"
+          }
+        },
+        correctAnswer: "adb devices"
+      },
+      {
+        id: "s3_q12", examSetId: 3, questionNumber: 12, questionType: "short",
+        sourceLanguage: "en", topic: "ADB CLI",
+        translations: {
+          en: {
+            questionText: "Write the ADB command to install an APK file located at `./app-debug.apk` onto a connected Android device.",
+            options: [],
+            explanation: "The standard syntax is 'adb install app-debug.apk'."
+          },
+          th: {
+            questionText: "พิมพ์คำสั่ง ADB เพื่อติดตั้งไฟล์ APK ซึ่งตั้งอยู่ที่ `./app-debug.apk` ลงในเครื่อง Android ที่เชื่อมต่อ",
+            options: [],
+            explanation: "ใช้คำสั่ง `adb install app-debug.apk` เพื่อสั่งติดตั้งไฟล์แพ็กเกจ"
+          }
+        },
+        correctAnswer: "adb install app-debug.apk"
+      },
+      {
+        id: "s3_q13", examSetId: 3, questionNumber: 13, questionType: "short",
+        sourceLanguage: "en", topic: "ADB CLI",
+        translations: {
+          en: {
+            questionText: "Write the ADB command used to view real-time system logs for debugging.",
+            options: [],
+            explanation: "'adb logcat' opens real-time system process log buffers."
+          },
+          th: {
+            questionText: "พิมพ์คำสั่ง ADB ที่ใช้สำหรับดู Log ของระบบแบบเรียลไทม์เพื่อแก้ไขข้อผิดพลาด",
+            options: [],
+            explanation: "ใช้คำสั่ง `adb logcat` เพื่อติดตามข้อมูลการบันทึกระดับระบบ"
+          }
+        },
+        correctAnswer: "adb logcat"
+      },
+      {
+        id: "s3_q14", examSetId: 3, questionNumber: 14, questionType: "short",
+        sourceLanguage: "en", topic: "Gradle CLI",
+        translations: {
+          en: {
+            questionText: "Write the Gradle command (using Gradle wrapper) to compile and build a debug APK in an Android project.",
+            options: [],
+            explanation: "'./gradlew assembleDebug' triggers the debug binary build pipeline."
+          },
+          th: {
+            questionText: "พิมพ์คำสั่ง Gradle (ใช้ Gradle Wrapper) เพื่อคอมไพล์และสร้าง Debug APK ในโปรเจกต์ Android",
+            options: [],
+            explanation: "ใช้คำสั่ง `./gradlew assembleDebug` ในการสร้างไฟล์ APK สำหรับทดสอบ"
+          }
+        },
+        correctAnswer: "./gradlew assembleDebug"
+      },
+      {
+        id: "s3_q15", examSetId: 3, questionNumber: 15, questionType: "short",
+        sourceLanguage: "en", topic: "Flutter CLI",
+        translations: {
+          en: {
+            questionText: "Write the Flutter CLI command to execute and run the app on a connected device or emulator.",
+            options: [],
+            explanation: "'flutter run' compiles and deploys the active app to connected targets."
+          },
+          th: {
+            questionText: "พิมพ์คำสั่ง Flutter CLI สำหรับสั่งประมวลผลและเปิดใช้งานแอปบนอุปกรณ์ที่เชื่อมต่ออยู่",
+            options: [],
+            explanation: "ใช้คำสั่ง `flutter run` เพื่อเริ่มทดสอบแอป"
+          }
+        },
+        correctAnswer: "flutter run"
+      },
+      {
+        id: "s3_q16", examSetId: 3, questionNumber: 16, questionType: "short",
+        sourceLanguage: "en", topic: "Flutter CLI",
+        translations: {
+          en: {
+            questionText: "Write the Flutter CLI command to build an APK file for Android deployment.",
+            options: [],
+            explanation: "'flutter build apk' generates standard release or debug APK output."
+          },
+          th: {
+            questionText: "พิมพ์คำสั่ง Flutter CLI สำหรับคอมไพล์สร้างไฟล์ APK เพื่อติดตั้งบน Android",
+            options: [],
+            explanation: "ใช้คำสั่ง `flutter build apk` ในการสั่งบิลด์แพ็กเกจ"
+          }
+        },
+        correctAnswer: "flutter build apk"
+      },
+      {
+        id: "s3_q17", examSetId: 3, questionNumber: 17, questionType: "short",
+        sourceLanguage: "en", topic: "Flutter CLI",
+        translations: {
+          en: {
+            questionText: "Write the Flutter CLI command to download and install all package dependencies specified in `pubspec.yaml`.",
+            options: [],
+            explanation: "'flutter pub get' syncs pub dependencies."
+          },
+          th: {
+            questionText: "พิมพ์คำสั่ง Flutter CLI เพื่อดาวน์โหลดและติดตั้งโมดูลที่ระบุไว้ใน `pubspec.yaml`",
+            options: [],
+            explanation: "ใช้คำสั่ง `flutter pub get` เพื่อติดตั้งไลบรารีทั้งหมด"
+          }
+        },
+        correctAnswer: "flutter pub get"
+      },
+      {
+        id: "s3_q18", examSetId: 3, questionNumber: 18, questionType: "short",
+        sourceLanguage: "en", topic: "React Native CLI",
+        translations: {
+          en: {
+            questionText: "Write the React Native CLI command to run the application on an Android emulator/device.",
+            options: [],
+            explanation: "'npx react-native run-android' triggers Android compilation and launch."
+          },
+          th: {
+            questionText: "พิมพ์คำสั่ง React Native CLI เพื่อรันแอปพลิเคชันบน Android Emulator หรือเครื่องจริง",
+            options: [],
+            explanation: "ใช้คำสั่ง `npx react-native run-android`"
+          }
+        },
+        correctAnswer: "npx react-native run-android"
+      },
+      {
+        id: "s3_q19", examSetId: 3, questionNumber: 19, questionType: "short",
+        sourceLanguage: "en", topic: "React Native CLI",
+        translations: {
+          en: {
+            questionText: "Write the React Native CLI command to run the application on an iOS simulator.",
+            options: [],
+            explanation: "'npx react-native run-ios' invokes Xcode simulator build pipelines."
+          },
+          th: {
+            questionText: "พิมพ์คำสั่ง React Native CLI เพื่อรันแอปพลิเคชันบน iOS Simulator",
+            options: [],
+            explanation: "ใช้คำสั่ง `npx react-native run-ios`"
+          }
+        },
+        correctAnswer: "npx react-native run-ios"
+      },
+      {
+        id: "s3_q20", examSetId: 3, questionNumber: 20, questionType: "short",
+        sourceLanguage: "en", topic: "Git CLI",
+        translations: {
+          en: {
+            questionText: "Write the Git command to check the status of modified, staged, or untracked files in your repository.",
+            options: [],
+            explanation: "'git status' provides working directory snapshot states."
+          },
+          th: {
+            questionText: "พิมพ์คำสั่ง Git เพื่อตรวจสอบสถานะของไฟล์ที่ถูกแก้ไข, Staged หรือยังไม่ได้ถูกติดตามในคลังโค้ด",
+            options: [],
+            explanation: "ใช้คำสั่ง `git status` ในการตรวจสอบสถานะโฟลเดอร์"
+          }
+        },
+        correctAnswer: "git status"
+      },
+      {
+        id: "s3_q21", examSetId: 3, questionNumber: 21, questionType: "short",
+        sourceLanguage: "en", topic: "Git CLI",
+        translations: {
+          en: {
+            questionText: "Write the Git command to stage all modified and new files in the current working directory.",
+            options: [],
+            explanation: "'git add .' queues all modifications in present path."
+          },
+          th: {
+            questionText: "พิมพ์คำสั่ง Git เพื่อนำไฟล์ที่ถูกเพิ่มและแก้ไขทั้งหมดในไดเรกทอรีปัจจุบันเข้าสู่ Staging Area",
+            options: [],
+            explanation: "ใช้คำสั่ง `git add .`"
+          }
+        },
+        correctAnswer: "git add ."
+      },
+      {
+        id: "s3_q22", examSetId: 3, questionNumber: 22, questionType: "short",
+        sourceLanguage: "en", topic: "Git CLI",
+        translations: {
+          en: {
+            questionText: "Write the Git command to commit staged changes with the message \"Complete BLE feature\".",
+            options: [],
+            explanation: "'git commit -m \"Complete BLE feature\"' saves staged changes with tag message."
+          },
+          th: {
+            questionText: "พิมพ์คำสั่ง Git เพื่อบันทึกการเปลี่ยนแปลง (Commit) พร้อมข้อความบันทึกว่า \"Complete BLE feature\"",
+            options: [],
+            explanation: "ใช้คำสั่ง `git commit -m \"Complete BLE feature\"`"
+          }
+        },
+        correctAnswer: 'git commit -m "Complete BLE feature"'
+      },
+
+      // === SET 4 (22 Questions) ===
+      {
+        id: "s4_q1", examSetId: 4, questionNumber: 1, questionType: "mcq",
+        sourceLanguage: "en", topic: "React Native BLE",
+        translations: {
+          en: {
+            questionText: "In `react-native-ble-plx`, which method is used to disconnect an active connection with a peripheral device?",
+            options: [
+              "manager.stopDeviceScan()",
+              "manager.cancelDeviceConnection(deviceId)",
+              "manager.removeDevice(deviceId)",
+              "manager.destroyConnection()"
+            ],
+            explanation: "cancelDeviceConnection(deviceId) severs the GATT physical/logical connection with specified peripheral ID."
+          },
+          th: {
+            questionText: "ใน `react-native-ble-plx` เมธอดใดใช้ในการยกเลิกการเชื่อมต่อกับอุปกรณ์ BLE ปลายทาง?",
+            options: [
+              "manager.stopDeviceScan()",
+              "manager.cancelDeviceConnection(deviceId)",
+              "manager.removeDevice(deviceId)",
+              "manager.destroyConnection()"
+            ],
+            explanation: "ใช้เมธอด `manager.cancelDeviceConnection(deviceId)` ในการสั่งตัดการเชื่อมต่อ"
+          }
+        },
+        correctAnswer: "B"
+      },
+      {
+        id: "s4_q2", examSetId: 4, questionNumber: 2, questionType: "mcq",
+        sourceLanguage: "en", topic: "React Native Packages",
+        translations: {
+          en: {
+            questionText: "Which NPM package is required alongside `react-native-ble-plx` to convert string data to Base64 for BLE characteristic writing/reading?",
+            options: ["crypto-js", "buffer", "base64-js", "async-storage"],
+            explanation: "'buffer' or 'base64-js' are commonly utilized libraries for binary Base64 buffer conversions in JS runtime environments."
+          },
+          th: {
+            questionText: "แพ็กเกจ NPM ใดนิยมใช้อย่างแพร่หลายร่วมกับ `react-native-ble-plx` ในการแปลงข้อความให้อยู่ในรูป Base64 เพื่ออ่านและเขียนข้อมูล BLE?",
+            options: ["crypto-js", "buffer", "base64-js", "async-storage"],
+            explanation: "นิยมใช้แพ็กเกจ `buffer` หรือ `base64-js` สำหรับการจัดการ Binary Buffer เป็น Base64"
+          }
+        },
+        correctAnswer: "B"
+      },
+      {
+        id: "s4_q3", examSetId: 4, questionNumber: 3, questionType: "mcq",
+        sourceLanguage: "en", topic: "GATT Write Modes",
+        translations: {
+          en: {
+            questionText: "What is the key difference between writing data with `writeCharacteristicWithResponseForDevice` and `writeCharacteristicWithoutResponseForDevice`?",
+            options: [
+              "\"WithResponse\" expects an acknowledgment from the peripheral, whereas \"WithoutResponse\" pushes data without waiting for confirmation.",
+              "\"WithoutResponse\" is only supported on iOS devices.",
+              "\"WithResponse\" uses 16-bit UUID, while \"WithoutResponse\" uses 128-bit UUID.",
+              "\"WithoutResponse\" automatically encrypts the payload before sending."
+            ],
+            explanation: "WithResponse ensures delivery confirmation (handshake ACK); WithoutResponse offers higher throughput speed at the risk of packet drops."
+          },
+          th: {
+            questionText: "ความแตกต่างสำคัญระหว่างการส่งข้อมูลด้วย `writeCharacteristicWithResponseForDevice` และ `writeCharacteristicWithoutResponseForDevice` คืออะไร?",
+            options: [
+              "\"WithResponse\" จะรอรับคำตอบรับการยืนยัน (ACK) จากอุปกรณ์ปลายทาง ส่วน \"WithoutResponse\" จะส่งข้อมูลออกไปโดยไม่รอรับการยืนยัน",
+              "\"WithoutResponse\" รองรับเฉพาะบนอุปกรณ์ iOS",
+              "\"WithResponse\" ใช้ 16-bit UUID ส่วน \"WithoutResponse\" ใช้ 128-bit UUID",
+              "\"WithoutResponse\" จะเข้ารหัสข้อมูลโดยอัตโนมัติก่อนส่ง"
+            ],
+            explanation: "`WithResponse` ต้องรอรับสัญญาณ ACK ตอบกลับ ส่วน `WithoutResponse` เน้นความรวดเร็วโดยไม่รอสัญญาณตอบรับ"
+          }
+        },
+        correctAnswer: "A"
+      },
+      {
+        id: "s4_q4", examSetId: 4, questionNumber: 4, questionType: "mcq",
+        sourceLanguage: "en", topic: "Expo Location Structure",
+        translations: {
+          en: {
+            questionText: "In `expo-location`, how do you access the numerical latitude and longitude values from the returned `location` object?",
+            options: [
+              "location.latitude and location.longitude",
+              "location.coords.latitude and location.coords.longitude",
+              "location.position.lat and location.position.lng",
+              "location.data.coords[0]"
+            ],
+            explanation: "Location object encapsulates spatial parameters under location.coords properties."
+          },
+          th: {
+            questionText: "ใน `expo-location` การเข้าถึงตัวเลขพิกัด latitude และ longitude จากวัตถุ `location` ที่ถูกส่งกลับมาต้องอ้างอิงอย่างไร?",
+            options: [
+              "location.latitude และ location.longitude",
+              "location.coords.latitude และ location.coords.longitude",
+              "location.position.lat และ location.position.lng",
+              "location.data.coords[0]"
+            ],
+            explanation: "พิกัดละติจูดและลองจิจูดถูกเก็บอยู่ภายใต้โครงสร้าง `location.coords`"
+          }
+        },
+        correctAnswer: "B"
+      },
+      {
+        id: "s4_q5", examSetId: 4, questionNumber: 5, questionType: "mcq",
+        sourceLanguage: "en", topic: "Expo Location Permissions",
+        translations: {
+          en: {
+            questionText: "What is the return value property of `Location.requestForegroundPermissionsAsync()` when the user grants permission to access location?",
+            options: ["{ granted: true }", "{ status: 'granted' }", "PermissionStatus.GRANTED", "'SUCCESS'"],
+            explanation: "The returned permission response object contains status: 'granted' or granted: true boolean property."
+          },
+          th: {
+            questionText: "ค่าที่ส่งกลับมาจาก `Location.requestForegroundPermissionsAsync()` ในส่วนสถานะจะมีค่าเท่าใดเมื่อผู้ใช้กดอนุญาตการเข้าถึงตำแหน่ง?",
+            options: ["{ granted: true }", "{ status: 'granted' }", "PermissionStatus.GRANTED", "'SUCCESS'"],
+            explanation: "วัตถุสถานะจะคืนค่าพร็อปเพอร์ตี `status: 'granted'`"
+          }
+        },
+        correctAnswer: "B"
+      },
+      {
+        id: "s4_q6", examSetId: 4, questionNumber: 6, questionType: "mcq",
+        sourceLanguage: "en", topic: "React Native Maps Rendering",
+        translations: {
+          en: {
+            questionText: "In `react-native-maps`, how do you render a dynamic array of pin markers on the map?",
+            options: [
+              'Using <MapView.Markers data="{markers}"/>',
+              'Mapping over the array: markers.map((marker, index) => <Marker ... coordinate={marker.coordinate} key={index}/>)',
+              "Passing pinList={markers} property into <MapView>",
+              'Using <FlatList data={markers} renderItem={Marker}/>'
+            ],
+            explanation: "Standard JSX array mapping renders JSX children <Marker> nodes inside <MapView>."
+          },
+          th: {
+            questionText: "ใน `react-native-maps` การแสดงผลรายการหมุดปัก (Markers) จากอาร์เรย์ของข้อมูลแผนที่ทำได้อย่างไร?",
+            options: [
+              'ใช้ <MapView.Markers data="{markers}"/>',
+              'วนลูปด้วย .map(): markers.map((marker, index) => <Marker ... coordinate={marker.coordinate} key={index}/>)',
+              'ส่งค่าพร็อปเพอร์ตี pinList={markers} ให้กับ <MapView>',
+              'ใช้ <FlatList data={markers} renderItem={Marker}/>'
+            ],
+            explanation: "ใช้วิธีวนลูปสแกนอาร์เรย์ข้อมูลผ่านฟังก์ชัน `.map()` แล้วส่งออกองค์ประกอบ `<Marker>`"
+          }
+        },
+        correctAnswer: "B"
+      },
+      {
+        id: "s4_q7", examSetId: 4, questionNumber: 7, questionType: "mcq",
+        sourceLanguage: "en", topic: "Expo Configurations",
+        translations: {
+          en: {
+            questionText: "In Expo / React Native project structure, where should you configure the Android Google Maps API Key?",
+            options: [
+              "Inside package.json under dependencies",
+              "Inside app.json under android.config.googleMaps.apiKey and plugins",
+              "Inside index.tsx as a constant string",
+              "Inside babel.config.js"
+            ],
+            explanation: "app.json is Expo's centralized application manifest configuration file."
+          },
+          th: {
+            questionText: "ในโครงสร้างโปรเจกต์ Expo / React Native ควรตั้งค่า Android Google Maps API Key ไว้ที่ไฟล์ใด?",
+            options: [
+              "ภายในไฟล์ package.json ใต้หมวด dependencies",
+              "ภายในไฟล์ app.json ใต้ android.config.googleMaps.apiKey และ plugins",
+              "ภายในไฟล์ index.tsx ในรูปแบบตัวแปรค่าคงที่",
+              "ภายในไฟล์ babel.config.js"
+            ],
+            explanation: "ควรกำหนดค่าในไฟล์ `app.json` ใต้ส่วนโครงสร้าง `android.config.googleMaps.apiKey`"
+          }
+        },
+        correctAnswer: "B"
+      },
+      {
+        id: "s4_q8", examSetId: 4, questionNumber: 8, questionType: "mcq",
+        sourceLanguage: "en", topic: "Java Tools",
+        translations: {
+          en: {
+            questionText: "Which Java tool is used on Windows/Mac to retrieve the SHA-1 Certificate Fingerprint from a `.keystore` file?",
+            options: ["keytool", "gradlew", "adb", "jarsigner"],
+            explanation: "keytool is standard Java JDK binary for managing keys and certificate footprints."
+          },
+          th: {
+            questionText: "เครื่องมือ Java ใดที่ใช้บน Windows/Mac ในการดึงค่า SHA-1 Certificate Fingerprint จากไฟล์ `.keystore`?",
+            options: ["keytool", "gradlew", "adb", "jarsigner"],
+            explanation: "เครื่องมือ `keytool` ใช้สำหรับการจัดการคีย์แอนด์เซอร์ทิฟิเคต"
+          }
+        },
+        correctAnswer: "A"
+      },
+      {
+        id: "s4_q9", examSetId: 4, questionNumber: 9, questionType: "mcq",
+        sourceLanguage: "en", topic: "Expo Sensors Lifecycle",
+        translations: {
+          en: {
+            questionText: "When cleanup is required upon unmounting a component in `useEffect` for `expo-sensors`, how should the sensor listener be removed?",
+            options: [
+              "Accelerometer.stop()",
+              "subscription.current?.remove()",
+              "Accelerometer.removeAllListeners()",
+              "setAccelerometer(null)"
+            ],
+            explanation: "Calling subscription.remove() unwires sensor event listeners gracefully to prevent memory leaks."
+          },
+          th: {
+            questionText: "เมื่อต้องการ คลีนอัป (Cleanup) การรับข้อมูลเซนเซอร์เมื่อยกเลิกหน้าจอ (Unmount) ใน `useEffect` ของ `expo-sensors` ควรยกเลิกอย่างไร?",
+            options: [
+              "Accelerometer.stop()",
+              "subscription.current?.remove()",
+              "Accelerometer.removeAllListeners()",
+              "setAccelerometer(null)"
+            ],
+            explanation: "การเรียกเมธอด `.remove()` บนตัวแปรการสมัครรับข้อมูล Subscription เป็นวิธียกเลิก Event Listener ที่ถูกต้อง"
+          }
+        },
+        correctAnswer: "B"
+      },
+      {
+        id: "s4_q10", examSetId: 4, questionNumber: 10, questionType: "mcq",
+        sourceLanguage: "en", topic: "Expo Sensors Units",
+        translations: {
+          en: {
+            questionText: "What is the unit of measurement reported by the Gyroscope sensor in `expo-sensors`?",
+            options: [
+              "Meters per second squared (m/s²)",
+              "Radians per second (rad/s)",
+              "Revolutions per minute (RPM)",
+              "Degrees Celsius (°C)"
+            ],
+            explanation: "Gyroscope rate measurement units are expressed in Radians per second (rad/s)."
+          },
+          th: {
+            questionText: "หน่วยวัดผลของค่าที่ได้จากเซนเซอร์ Gyroscope ใน `expo-sensors` คือหน่วยใด?",
+            options: [
+              "เมตรต่อวินาทีกำลังสอง (m/s²)",
+              "เรเดียนต่อวินาที (rad/s)",
+              "รอบต่อนาที (RPM)",
+              "องศาเซลเซียส (°C)"
+            ],
+            explanation: "รายงานค่าความเร็วเชิงมุมของการหมุนในหน่วย เรเดียนต่อวินาที (rad/s)"
+          }
+        },
+        correctAnswer: "B"
+      },
+      {
+        id: "s4_q11", examSetId: 4, questionNumber: 11, questionType: "mcq",
+        sourceLanguage: "en", topic: "Orientation Axis",
+        translations: {
+          en: {
+            questionText: "Which orientation movement refers to pitching/tilting forward or backward along the X-axis?",
+            options: ["Yaw (Alpha)", "Pitch (Beta)", "Roll (Gamma)", "Elevation"],
+            explanation: "Pitch (Beta) specifies forward/backward tilt motion relative to horizontal level."
+          },
+          th: {
+            questionText: "ทิศทางการเอียงก้มหน้าหรือเงยหลัง (Forward / Backward) รอบแกน X เรียกว่าอะไร?",
+            options: ["Yaw (Alpha)", "Pitch (Beta)", "Roll (Gamma)", "Elevation"],
+            explanation: "การเอียงก้มเงยรอบแกน X เรียกว่า `Pitch` (Beta)"
+          }
+        },
+        correctAnswer: "B"
+      },
+      {
+        id: "s4_q12", examSetId: 4, questionNumber: 12, questionType: "mcq",
+        sourceLanguage: "en", topic: "Android Permissions Legacy",
+        translations: {
+          en: {
+            questionText: "Which Android runtime permission is strictly required on Android 11 or lower to perform BLE scanning?",
+            options: [
+              "android.permission.CAMERA",
+              "android.permission.ACCESS_FINE_LOCATION",
+              "android.permission.BLUETOOTH_ADVERTISE",
+              "android.permission.READ_EXTERNAL_STORAGE"
+            ],
+            explanation: "Legacy Android versions (<12) mapped BLE scan capabilities under ACCESS_FINE_LOCATION permissions due to beacon proximity risks."
+          },
+          th: {
+            questionText: "สิทธิ์การเข้าถึงใดที่จำเป็นต้องขอขณะใช้งานอย่างเคร่งครัดบน Android 11 หรือต่ำกว่า เพื่อทำการค้นหา (Scan) อุปกรณ์ BLE?",
+            options: [
+              "android.permission.CAMERA",
+              "android.permission.ACCESS_FINE_LOCATION",
+              "android.permission.BLUETOOTH_ADVERTISE",
+              "android.permission.READ_EXTERNAL_STORAGE"
+            ],
+            explanation: "Android 11 และต่ำกว่าต้องใช้สิทธิ์ `android.permission.ACCESS_FINE_LOCATION` ในการสแกนหา BLE"
+          }
+        },
+        correctAnswer: "B"
+      },
+      {
+        id: "s3_q13_set4", examSetId: 4, questionNumber: 13, questionType: "mcq",
+        sourceLanguage: "en", topic: "Android Lifecycle",
+        translations: {
+          en: {
+            questionText: "In Android Activity Lifecycle, which state is entered immediately after `onStart()` when the app becomes interactive?",
+            options: ["onCreate()", "onResume()", "onPause()", "onStop()"],
+            explanation: "onStart() is followed directly by onResume() when screen interactions begin."
+          },
+          th: {
+            questionText: "ในวงจรชีวิตของ Android Activity สถานะใดจะทำงานต่อทันทีหลังจาก `onStart()` เมื่อแอปพร้อมปฏิสัมพันธ์กับผู้ใช้?",
+            options: ["onCreate()", "onResume()", "onPause()", "onStop()"],
+            explanation: "สถานะ `onResume()` จะเกิดขึ้นถัดจาก `onStart()`"
+          }
+        },
+        correctAnswer: "B"
+      },
+      {
+        id: "s4_q14", examSetId: 4, questionNumber: 14, questionType: "mcq",
+        sourceLanguage: "en", topic: "iOS Configuration",
+        translations: {
+          en: {
+            questionText: "In iOS app development, which configuration file holds localized permission usage descriptions (e.g., camera or location access prompt text)?",
+            options: ["app.json", "Info.plist", "AppDelegate.swift", "Podfile"],
+            explanation: "Info.plist contains key-value descriptors such as NSLocationWhenInUseUsageDescription."
+          },
+          th: {
+            questionText: "ในการพัฒนาแอป iOS ไฟล์กำหนดค่าใดใช้สำหรับเก็บข้อความอธิบายเหตุผลการขอเข้าถึงสิทธิ์ (เช่น เหตุผลในการขอใช้กล้องหรือพิกัดตำแหน่ง)?",
+            options: ["app.json", "Info.plist", "AppDelegate.swift", "Podfile"],
+            explanation: "ไฟล์ `Info.plist` เป็นที่เก็บคำอธิบายประกอบสิทธิ์ เช่น `NSLocationWhenInUseUsageDescription`"
+          }
+        },
+        correctAnswer: "B"
+      },
+      {
+        id: "s4_q15", examSetId: 4, questionNumber: 15, questionType: "mcq",
+        sourceLanguage: "en", topic: "Testing",
+        translations: {
+          en: {
+            questionText: "What type of testing isolates individual React components or pure functions to test their logic independently?",
+            options: ["Unit Testing", "Integration Testing", "UI Testing", "End-to-End (E2E) Testing"],
+            explanation: "Unit testing tests component render logic or pure functions in isolation."
+          },
+          th: {
+            questionText: "การทดสอบประเภทใดเน้นแยกส่วนคอมโพเนนต์หรือฟังก์ชันใน React เพื่อทดสอบลอจิกเป็นอิสระจากส่วนอื่น?",
+            options: ["Unit Testing", "Integration Testing", "UI Testing", "End-to-End (E2E) Testing"],
+            explanation: "`Unit Testing` คือการทดสอบโค้ดระดับย่อยเดี่ยวๆ"
+          }
+        },
+        correctAnswer: "A"
+      },
+      {
+        id: "s4_q16", examSetId: 4, questionNumber: 16, questionType: "mcq",
+        sourceLanguage: "en", topic: "iOS Testing Services",
+        translations: {
+          en: {
+            questionText: "Which Apple service allows developers to invite external users to test beta versions of an iOS application before public release?",
+            options: ["App Store Connect Sandbox", "TestFlight", "Expo Go", "Apple Developer Center"],
+            explanation: "TestFlight allows external public/private beta testing distribution for up to 10,000 testers."
+          },
+          th: {
+            questionText: "บริการใดของ Apple ที่เปิดให้ผู้พัฒนานำส่งแอปพลิเคชันเวอร์ชันทดสอบ Beta ไปให้กลุ่มผู้ทดสอบภายนอกลองใช้งานก่อนปล่อยจริง?",
+            options: ["App Store Connect Sandbox", "TestFlight", "Expo Go", "Apple Developer Center"],
+            explanation: "บริการ `TestFlight` เปิดให้เชิญผู้ทดสอบภายนอกมาติดตั้งทดสอบแอป"
+          }
+        },
+        correctAnswer: "B"
+      },
+      {
+        id: "s4_q17", examSetId: 4, questionNumber: 17, questionType: "mcq",
+        sourceLanguage: "en", topic: "ADB CLI",
+        translations: {
+          en: {
+            questionText: "Which ADB CLI command removes/uninstalls an application package (e.g., com.example.myapp) from a connected Android device?",
+            options: [
+              "adb remove com.example.myapp",
+              "adb uninstall com.example.myapp",
+              "adb delete com.example.myapp",
+              "adb purge com.example.myapp"
+            ],
+            explanation: "adb uninstall <package_name> removes targeted application data from Android device."
+          },
+          th: {
+            questionText: "คำสั่ง ADB CLI ข้อใดใช้ถอนการติดตั้งแอปพลิเคชัน (เช่น com.example.myapp) ออกจากอุปกรณ์ Android?",
+            options: [
+              "adb remove com.example.myapp",
+              "adb uninstall com.example.myapp",
+              "adb delete com.example.myapp",
+              "adb purge com.example.myapp"
+            ],
+            explanation: "ใช้คำสั่ง `adb uninstall com.example.myapp` ในการถอนการติดตั้ง"
+          }
+        },
+        correctAnswer: "B"
+      },
+      {
+        id: "s4_q18", examSetId: 4, questionNumber: 18, questionType: "mcq",
+        sourceLanguage: "en", topic: "ADB CLI",
+        translations: {
+          en: {
+            questionText: "Which ADB CLI command opens an interactive command-line shell session on a connected Android device?",
+            options: ["adb terminal", "adb shell", "adb connect", "adb console"],
+            explanation: "adb shell provides interactive Linux shell terminal prompts on target target devices."
+          },
+          th: {
+            questionText: "คำสั่ง ADB CLI ข้อใดใช้ออกคำสั่งเข้าสู่โหมด Command-line Shell บนอุปกรณ์ Android ที่เชื่อมต่อ?",
+            options: ["adb terminal", "adb shell", "adb connect", "adb console"],
+            explanation: "ใช้คำสั่ง `adb shell` เข้าใช้งานอาณัติเทอร์มินัล Linux ภายในเครื่อง"
+          }
+        },
+        correctAnswer: "B"
+      },
+      {
+        id: "s4_q19", examSetId: 4, questionNumber: 19, questionType: "mcq",
+        sourceLanguage: "en", topic: "Git CLI",
+        translations: {
+          en: {
+            questionText: "Which Git command creates a new branch named `feature-sensors` and immediately switches your workspace to it?",
+            options: [
+              "git branch feature-sensors",
+              "git checkout -b feature-sensors",
+              "git create feature-sensors",
+              "git push -b feature-sensors"
+            ],
+            explanation: "git checkout -b creates and switches current HEAD to the target branch name."
+          },
+          th: {
+            questionText: "คำสั่ง Git ใดใช้สร้างสาขา (Branch) ใหม่ชื่อ `feature-sensors` และสลับไปยัง Branch นั้นทันที?",
+            options: [
+              "git branch feature-sensors",
+              "git checkout -b feature-sensors",
+              "git create feature-sensors",
+              "git push -b feature-sensors"
+            ],
+            explanation: "คำสั่ง `git checkout -b feature-sensors` ทำการสร้างและสลับไปใช้งานแบรนช์ใหม่ทันที"
+          }
+        },
+        correctAnswer: "B"
+      },
+      {
+        id: "s4_q20", examSetId: 4, questionNumber: 20, questionType: "mcq",
+        sourceLanguage: "en", topic: "Git CLI",
+        translations: {
+          en: {
+            questionText: "Which Git command reverts/discards unstaged changes in a specific file in your working directory back to the last committed state?",
+            options: [
+              "git restore <file>",
+              "git remove <file>",
+              "git drop <file>",
+              "git clean <file>"
+            ],
+            explanation: "git restore <file> discards working directory changes in specified target file."
+          },
+          th: {
+            questionText: "คำสั่ง Git ใดใช้ยกเลิกการเปลี่ยนแปลงที่ยังไม่ได้ Staged ในไฟล์ที่กำหนด เพื่อย้อนกลับสู่สภาพ Commit ล่าสุด?",
+            options: [
+              "git restore <file>",
+              "git remove <file>",
+              "git drop <file>",
+              "git clean <file>"
+            ],
+            explanation: "ใช้คำสั่ง `git restore <file>` ในการคืนค่าเนื้อหาไฟล์กลับสู่ล่าสุด"
+          }
+        },
+        correctAnswer: "A"
+      },
+      {
+        id: "s4_q21", examSetId: 4, questionNumber: 21, questionType: "mcq",
+        sourceLanguage: "en", topic: "React Native Metro",
+        translations: {
+          en: {
+            questionText: "Which CLI command starts the Metro bundler development server in a React Native / Expo project?",
+            options: [
+              "npx react-native start (or npx expo start)",
+              "npm run build",
+              "adb start-server",
+              "./gradlew start"
+            ],
+            explanation: "npx react-native start fires up Metro JS packager server."
+          },
+          th: {
+            questionText: "คำสั่ง CLI ใดใช้ในการเปิดเซิร์ฟเวอร์ Metro Bundler สำหรับพัฒนาโปรเจกต์ React Native / Expo?",
+            options: [
+              "npx react-native start (หรือ npx expo start)",
+              "npm run build",
+              "adb start-server",
+              "./gradlew start"
+            ],
+            explanation: "ใช้คำสั่ง `npx react-native start` หรือ `npx expo start` เพื่อเริ่ม Metro Bundler"
+          }
+        },
+        correctAnswer: "A"
+      },
+      {
+        id: "s4_q22", examSetId: 4, questionNumber: 22, questionType: "mcq",
+        sourceLanguage: "en", topic: "Google Play Console Tracks",
+        translations: {
+          en: {
+            questionText: "Which track in Google Play Console allows developers to publish an APK/AAB to up to 100 internal team members instantly without full Google app review?",
+            options: ["Production Track", "Internal Testing Track", "Open Beta Track", "Staging Track"],
+            explanation: "Internal testing track bypasses standard Google Play review hold times for up to 100 designated team accounts."
+          },
+          th: {
+            questionText: "ช่องทางเผยแพร่ใดใน Google Play Console ที่ช่วยให้ผู้พัฒนาแจกจ่าย APK/AAB ให้ทีมงานภายในไม่เกิน 100 คนได้ทันทีโดยไม่ต้องผ่านการตรวจรีวิวแอปเต็มรูปแบบ?",
+            options: ["Production Track", "Internal Testing Track", "Open Beta Track", "Staging Track"],
+            explanation: "ช่องทาง `Internal Testing Track` ให้สิทธิ์ติดตั้งแบบทันทีโดยไม่ต้องผ่านกระบวนการอนุมัติรีวิว"
+          }
+        },
+        correctAnswer: "B"
+      }
+    ];
+
+    // --- DICTIONARY I18N ---
+    const i18nDict = {
+      en: {
+        title: "EXAM SPACE",
+        welcome: "Bilingual Mobile Dev Exam Master",
+        practiceMode: "Practice Mode",
+        examMode: "Exam/Simulated Mode",
+        startPractice: "Start Practice",
+        continueExam: "Continue Exam",
+        summaryTitle: "Exam Performance Summary",
+        dash: "Dashboard",
+        analytics: "Analytics",
+        selectSet: "Select Exam Set",
+        allSets: "All Sets (88 Questions)",
+        set1: "Set 1 (Mobile Sensors & BLE)",
+        set2: "Set 2 (GATT & Expo Location)",
+        set3: "Set 3 (Android/iOS & CLI)",
+        set4: "Set 4 (Testing, Git & Tools)",
+        incorrectOnly: "Incorrect Answers Only",
+        unansweredOnly: "Unanswered Questions",
+        totalQuestions: "Total Questions",
+        setsCount: "Exam Sets",
+        answeredCount: "Answered Questions",
+        avgScore: "Average Score",
+        accuracyRate: "Accuracy Rate",
+        overallProgress: "Overall Mastery Progress",
+        continueLearning: "Continue Learning",
+        backToDash: "Back to Dashboard",
+        submitAnswer: "Submit Answer",
+        next: "Next",
+        prev: "Previous",
+        markReview: "Mark for Review",
+        clearAnswer: "Clear Answer",
+        finishExam: "Finish Exam",
+        correct: "Correct!",
+        incorrect: "Incorrect",
+        explanation: "Explanation",
+        yourAnswer: "Your Answer",
+        correctAnswerStr: "Correct Answer",
+        timeRemaining: "Time Remaining",
+        timeSpent: "Time Spent",
+        score: "Score",
+        percentage: "Percentage",
+        correctCount: "Correct",
+        incorrectCount: "Incorrect",
+        unansweredCount: "Unanswered",
+        retake: "Retake Exam",
+        retryIncorrect: "Retry Incorrect Questions",
+        reviewAnswers: "Review Answers",
+        exportCsv: "Export Results CSV",
+        filterBySet: "Filter by Exam Set",
+        history: "Attempt History",
+        strongTopics: "Strong Topics",
+        weakTopics: "Weak Topics To Review",
+        enterCliAnswer: "Type exact CLI command or short answer here...",
+        question: "Question",
+        of: "of",
+        viewAnalytics: "View Full Analytics",
+        langSwitch: "Language: EN",
+        themeSwitch: "Theme"
+      },
+      th: {
+        title: "EXAM SPACE",
+        welcome: "ระบบคลังข้อสอบเตรียมสอบปลายภาควิชาการพัฒนาแอปมือถือ",
+        practiceMode: "โหมดฝึกทำข้อสอบ (เฉลยทันที)",
+        examMode: "โหมดจำลองสอบจริง (จับเวลา & ซ่อนเฉลย)",
+        startPractice: "เริ่มทำข้อสอบ",
+        continueExam: "ทำข้อสอบต่อจากเดิม",
+        summaryTitle: "สรุปผลคะแนนและสถิติการทำข้อสอบ",
+        dash: "หน้าแรก",
+        analytics: "สถิติและวิเคราะห์",
+        selectSet: "เลือกชุดข้อสอบ",
+        allSets: "ทุกชุดข้อสอบ (รวม 88 ข้อ)",
+        set1: "ชุดที่ 1 (Mobile Sensors & BLE)",
+        set2: "ชุดที่ 2 (GATT & Expo Location)",
+        set3: "ชุดที่ 3 (Android/iOS & CLI คำสั่ง)",
+        set4: "ชุดที่ 4 (Testing, Git & เครื่องมือ)",
+        incorrectOnly: "เฉพาะข้อที่ตอบผิด",
+        unansweredOnly: "เฉพาะข้อที่ยังไม่ได้ทำ",
+        totalQuestions: "จำนวนข้อสอบทั้งหมด",
+        setsCount: "ชุดข้อสอบทั้งหมด",
+        answeredCount: "ทำไปแล้วทั้งสิ้น",
+        avgScore: "คะแนนเฉลี่ย",
+        accuracyRate: "อัตราการตอบถูก",
+        overallProgress: "ความคืบหน้าภาพรวม",
+        continueLearning: "ทำข้อสอบค้างไว้",
+        backToDash: "กลับสู่หน้าหลัก",
+        submitAnswer: "ส่งคำตอบ",
+        next: "ถัดไป",
+        prev: "ย้อนกลับ",
+        markReview: "ติดธงทบทวน",
+        clearAnswer: "ล้างคำตอบ",
+        finishExam: "ส่งข้อสอบเสร็จสิ้น",
+        correct: "ถูกต้อง!",
+        incorrect: "ไม่ถูกต้อง",
+        explanation: "คำอธิบายเฉลย",
+        yourAnswer: "คำตอบของคุณ",
+        correctAnswerStr: "เฉลยที่ถูกต้อง",
+        timeRemaining: "เวลาที่เหลือ",
+        timeSpent: "เวลาที่ใช้ไป",
+        score: "คะแนนที่ได้",
+        percentage: "คิดเป็นเปอร์เซ็นต์",
+        correctCount: "ตอบถูก",
+        incorrectCount: "ตอบผิด",
+        unansweredCount: "ไม่ได้ตอบ",
+        retake: "ทำข้อสอบใหม่อีกครั้ง",
+        retryIncorrect: "ทำซ้ำเฉพาะข้อที่ตอบผิด",
+        reviewAnswers: "ตรวจดูเฉลยอย่างละเอียด",
+        exportCsv: "ส่งออกไฟล์ผลคะแนน CSV",
+        filterBySet: "กรองตามชุดข้อสอบ",
+        history: "ประวัติการทำข้อสอบย้อนหลัง",
+        strongTopics: "หัวข้อที่ทำได้ดีเยี่ยม",
+        weakTopics: "หัวข้อที่ควรทบทวนเพิ่มเติม",
+        enterCliAnswer: "พิมพ์คำสั่ง CLI หรือคำตอบสั้นๆ ที่นี่...",
+        question: "ข้อที่",
+        of: "จาก",
+        viewAnalytics: "ดูรายงานการวิเคราะห์เต็มรูปแบบ",
+        langSwitch: "ภาษา: TH",
+        themeSwitch: "ธีม"
+      }
+    };
+
+    // Helper functions
+    function normalizeAnswerStr(str) {
+      if (!str) return '';
+      return str.trim().replace(/\s+/g, ' ').toLowerCase();
+    }
+
+    // Main App Component
+    function App() {
+      // States
+      const [lang, setLang] = useState(() => localStorage.getItem('es_lang') || 'th');
+      const [darkMode, setDarkMode] = useState(() => localStorage.getItem('es_theme') === 'dark');
+      const [currentPage, setCurrentPage] = useState('dashboard'); // dashboard, selection, exam, result, analytics
+      
+      // Exam Session States
+      const [selectedSet, setSelectedSet] = useState('all'); // all, 1, 2, 3, 4
+      const [examMode, setExamMode] = useState('practice'); // practice, exam, incorrect, unanswered
+      const [activeQuestions, setActiveQuestions] = useState([]);
+      const [currentIndex, setCurrentIndex] = useState(0);
+      const [userAnswers, setUserAnswers] = useState({}); // { qId: { selected: '', isSubmitted: bool, isCorrect: bool, marked: bool } }
+      const [timeLeft, setTimeLeft] = useState(0);
+      const [timerActive, setTimerActive] = useState(false);
+      const [timeSpent, setTimeSpent] = useState(0);
+
+      // Historical Attempts
+      const [attempts, setAttempts] = useState(() => {
+        const saved = localStorage.getItem('es_attempts');
+        return saved ? JSON.parse(saved) : [];
+      });
+
+      // Saved active session state
+      const [savedSession, setSavedSession] = useState(() => {
+        const saved = localStorage.getItem('es_active_session');
+        return saved ? JSON.parse(saved) : null;
+      });
+
+      const t = i18nDict[lang];
+
+      // Theme toggle effect
+      useEffect(() => {
+        if (darkMode) {
+          document.documentElement.classList.add('dark');
+          localStorage.setItem('es_theme', 'dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+          localStorage.setItem('es_theme', 'light');
+        }
+      }, [darkMode]);
+
+      // Save language
+      useEffect(() => {
+        localStorage.setItem('es_lang', lang);
+      }, [lang]);
+
+      // Save attempts
+      useEffect(() => {
+        localStorage.setItem('es_attempts', JSON.stringify(attempts));
+      }, [attempts]);
+
+      // Timer effect for Exam Mode
+      useEffect(() => {
+        let interval = null;
+        if (timerActive && timeLeft > 0) {
+          interval = setInterval(() => {
+            setTimeLeft(prev => prev - 1);
+            setTimeSpent(prev => prev + 1);
+          }, 1000);
+        } else if (timeLeft === 0 && timerActive) {
+          setTimerActive(false);
+          finishExamSession();
+        }
+        return () => clearInterval(interval);
+      }, [timerActive, timeLeft]);
+
+      // Initialize Icons
+      useEffect(() => {
+        if (window.lucide) {
+          window.lucide.createIcons();
+        }
+      });
+
+      // Global Stats
+      const overallStats = useMemo(() => {
+        let totalAnswered = 0;
+        let totalCorrect = 0;
+        
+        attempts.forEach(att => {
+          totalAnswered += att.answeredCount;
+          totalCorrect += att.correctCount;
+        });
+
+        const totalAttemptsCount = attempts.length;
+        const avgScorePercent = totalAttemptsCount > 0 
+          ? Math.round(attempts.reduce((acc, curr) => acc + curr.percentage, 0) / totalAttemptsCount) 
+          : 0;
+
+        const accuracyRate = totalAnswered > 0 
+          ? Math.round((totalCorrect / totalAnswered) * 100) 
+          : 0;
+
+        return {
+          totalQuestions: rawExamData.length,
+          totalSets: 4,
+          totalAnswered,
+          avgScorePercent,
+          accuracyRate,
+          totalAttemptsCount
+        };
+      }, [attempts]);
+
+      // Handler: Start Exam
+      const startExamSession = (setId = selectedSet, mode = examMode, filterQuestions = null) => {
+        let qList = [];
+        if (filterQuestions) {
+          qList = filterQuestions;
+        } else if (setId === 'all') {
+          qList = [...rawExamData];
+        } else {
+          qList = rawExamData.filter(q => q.examSetId === Number(setId));
+        }
+
+        if (qList.length === 0) {
+          alert(lang === 'th' ? 'ไม่มีข้อสอบในเงื่อนไขที่เลือก' : 'No questions matching selected filter');
+          return;
+        }
+
+        setSelectedSet(setId);
+        setExamMode(mode);
+        setActiveQuestions(qList);
+        setCurrentIndex(0);
+        
+        // Initial user answers map
+        const initialAnswers = {};
+        qList.forEach(q => {
+          initialAnswers[q.id] = {
+            selected: '',
+            typed: '',
+            isSubmitted: false,
+            isCorrect: null,
+            marked: false
+          };
+        });
+        setUserAnswers(initialAnswers);
+
+        // Timer setups (2 mins per question in exam mode)
+        if (mode === 'exam') {
+          setTimeLeft(qList.length * 120);
+          setTimerActive(true);
+        } else {
+          setTimerActive(false);
+          setTimeLeft(0);
+        }
+        setTimeSpent(0);
+
+        setCurrentPage('exam');
+      };
+
+      // Handler: Save Session
+      const saveActiveSessionState = () => {
+        const sessionData = {
+          selectedSet,
+          examMode,
+          activeQuestions,
+          currentIndex,
+          userAnswers,
+          timeLeft,
+          timeSpent,
+          timestamp: new Date().toISOString()
+        };
+        setSavedSession(sessionData);
+        localStorage.setItem('es_active_session', JSON.stringify(sessionData));
+        alert(lang === 'th' ? 'บันทึกความคืบหน้าสำเร็จ!' : 'Progress saved successfully!');
+      };
+
+      // Handler: Resume Session
+      const resumeSavedSession = () => {
+        if (!savedSession) return;
+        setSelectedSet(savedSession.selectedSet);
+        setExamMode(savedSession.examMode);
+        setActiveQuestions(savedSession.activeQuestions);
+        setCurrentIndex(savedSession.currentIndex);
+        setUserAnswers(savedSession.userAnswers);
+        setTimeLeft(savedSession.timeLeft);
+        setTimeSpent(savedSession.timeSpent);
+        if (savedSession.examMode === 'exam' && savedSession.timeLeft > 0) {
+          setTimerActive(true);
+        }
+        setCurrentPage('exam');
+      };
+
+      // Handler: Select Answer Option
+      const handleSelectOption = (qId, optionKey) => {
+        setUserAnswers(prev => {
+          const current = prev[qId];
+          if (examMode === 'practice' && current?.isSubmitted) return prev; // Locked after submission in practice
+          return {
+            ...prev,
+            [qId]: {
+              ...current,
+              selected: optionKey
+            }
+          };
+        });
+      };
+
+      // Handler: Type CLI Answer
+      const handleTypeAnswer = (qId, text) => {
+        setUserAnswers(prev => {
+          const current = prev[qId];
+          if (examMode === 'practice' && current?.isSubmitted) return prev;
+          return {
+            ...prev,
+            [qId]: {
+              ...current,
+              typed: text
+            }
+          };
+        });
+      };
+
+      // Handler: Submit Answer in Practice Mode
+      const handleSubmitAnswer = (q) => {
+        const userAns = userAnswers[q.id];
+        if (!userAns) return;
+
+        let isCorrect = false;
+        if (q.questionType === 'mcq') {
+          if (!userAns.selected) return;
+          isCorrect = (userAns.selected === q.correctAnswer);
+        } else {
+          // Short answer / CLI
+          const typedNorm = normalizeAnswerStr(userAns.typed);
+          const correctNorm = normalizeAnswerStr(q.correctAnswer);
+          isCorrect = typedNorm === correctNorm || typedNorm.includes(correctNorm);
+        }
+
+        setUserAnswers(prev => ({
+          ...prev,
+          [q.id]: {
+            ...prev[q.id],
+            isSubmitted: true,
+            isCorrect
+          }
+        }));
+      };
+
+      // Handler: Toggle Mark for Review
+      const toggleMarkForReview = (qId) => {
+        setUserAnswers(prev => ({
+          ...prev,
+          [qId]: {
+            ...prev[qId],
+            marked: !prev[qId]?.marked
+          }
+        }));
+      };
+
+      // Handler: Clear Answer
+      const clearAnswer = (q) => {
+        const userAns = userAnswers[q.id];
+        if (examMode === 'practice' && userAns?.isSubmitted) return;
+        setUserAnswers(prev => ({
+          ...prev,
+          [q.id]: {
+            ...prev[q.id],
+            selected: '',
+            typed: '',
+            isSubmitted: false,
+            isCorrect: null
+          }
+        }));
+      };
+
+      // Handler: Finish Exam Session
+      const finishExamSession = () => {
+        setTimerActive(false);
+        
+        let correctCount = 0;
+        let incorrectCount = 0;
+        let unansweredCount = 0;
+
+        activeQuestions.forEach(q => {
+          const uAns = userAnswers[q.id];
+          let isCorr = false;
+
+          if (q.questionType === 'mcq') {
+            if (!uAns || !uAns.selected) {
+              unansweredCount++;
+            } else if (uAns.selected === q.correctAnswer) {
+              correctCount++;
+              isCorr = true;
+            } else {
+              incorrectCount++;
+            }
+          } else {
+            if (!uAns || !uAns.typed || uAns.typed.trim() === '') {
+              unansweredCount++;
+            } else {
+              const typedNorm = normalizeAnswerStr(uAns.typed);
+              const correctNorm = normalizeAnswerStr(q.correctAnswer);
+              if (typedNorm === correctNorm || typedNorm.includes(correctNorm)) {
+                correctCount++;
+                isCorr = true;
+              } else {
+                incorrectCount++;
+              }
+            }
+          }
+        });
+
+        const totalQ = activeQuestions.length;
+        const percentage = totalQ > 0 ? Math.round((correctCount / totalQ) * 100) : 0;
+
+        const attemptRecord = {
+          id: 'att_' + Date.now(),
+          setId: selectedSet,
+          mode: examMode,
+          timestamp: new Date().toLocaleDateString(lang === 'th' ? 'th-TH' : 'en-US', {
+            year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+          }),
+          totalQuestions: totalQ,
+          correctCount,
+          incorrectCount,
+          unansweredCount,
+          percentage,
+          timeSpent,
+          userAnswersState: userAnswers,
+          questions: activeQuestions
+        };
+
+        setAttempts(prev => [attemptRecord, ...prev]);
+        setSavedSession(null);
+        localStorage.removeItem('es_active_session');
+        setCurrentPage('result');
+      };
+
+      // Export CSV
+      const exportResultsCSV = () => {
+        if (attempts.length === 0) {
+          alert(lang === 'th' ? 'ยังไม่มีประวัติผลสอบสำหรับส่งออก' : 'No exam history available to export');
+          return;
+        }
+
+        let csvContent = "data:text/csv;charset=utf-8,";
+        csvContent += "Attempt ID,Date,Set,Mode,Total Questions,Correct,Incorrect,Unanswered,Percentage (%),Time Spent (s)\n";
+
+        attempts.forEach(a => {
+          csvContent += `${a.id},"${a.timestamp}",Set ${a.setId},${a.mode},${a.totalQuestions},${a.correctCount},${a.incorrectCount},${a.unansweredCount},${a.percentage},${a.timeSpent}\n`;
+        });
+
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", `Exam_Space_Results_${Date.now()}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      };
+
+      // --- NEUMORPHIC UI WRAPPERS & STYLES ---
+      const neuCardClass = darkMode 
+        ? "bg-[#202124] rounded-2xl p-6 shadow-neu-dark-flat border border-gray-800/40" 
+        : "bg-[#E8E8E8] rounded-2xl p-6 shadow-neu-flat border border-white/50";
+
+      const neuButtonClass = darkMode
+        ? "bg-[#202124] shadow-neu-dark-flat hover:shadow-neu-dark-pressed active:shadow-neu-dark-pressed rounded-xl transition-all duration-200 font-medium text-sm text-[#F3F3F3]"
+        : "bg-[#E8E8E8] shadow-neu-flat hover:shadow-neu-pressed active:shadow-neu-pressed rounded-xl transition-all duration-200 font-medium text-sm text-[#222222]";
+
+      const neuPillClass = darkMode
+        ? "bg-[#202124] shadow-neu-dark-flat hover:shadow-neu-dark-pressed rounded-full transition-all text-xs font-semibold"
+        : "bg-[#E8E8E8] shadow-neu-flat hover:shadow-neu-pressed rounded-full transition-all text-xs font-semibold";
+
+      const neuInsetClass = darkMode
+        ? "bg-[#1a1b1d] shadow-neu-dark-pressed rounded-xl"
+        : "bg-[#e0e0e0] shadow-neu-pressed rounded-xl";
+
+      return (
+        <div className="min-h-screen flex flex-col transition-colors duration-300">
+          
+          {/* HEADER / NAVBAR */}
+          <header className={`sticky top-0 z-40 px-6 py-4 transition-all duration-300 ${
+            darkMode ? 'bg-[#202124]/90 backdrop-blur-md border-b border-gray-800' : 'bg-[#E8E8E8]/90 backdrop-blur-md border-b border-gray-300/50'
+          }`}>
+            <div className="max-w-7xl mx-auto flex justify-between items-center">
+              
+              {/* Logo / Title */}
+              <div 
+                className="flex items-center gap-3 cursor-pointer group"
+                onClick={() => setCurrentPage('dashboard')}
+              >
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-xl ${
+                  darkMode ? 'bg-[#202124] shadow-neu-dark-flat text-blue-400' : 'bg-[#E8E8E8] shadow-neu-flat text-blue-600'
+                }`}>
+                  ES
+                </div>
+                <div>
+                  <h1 className="font-extrabold tracking-wider text-lg leading-tight">{t.title}</h1>
+                  <p className="text-xs opacity-60 font-medium">{t.welcome}</p>
+                </div>
+              </div>
+
+              {/* Navigation Controls */}
+              <div className="flex items-center gap-3">
+                <button 
+                  onClick={() => setCurrentPage('dashboard')}
+                  className={`${neuButtonClass} px-4 py-2 flex items-center gap-2 ${currentPage === 'dashboard' ? 'text-blue-500 font-bold' : ''}`}
+                >
+                  <Icon name="layout-dashboard" />
+                  <span className="hidden sm:inline">{t.dash}</span>
+                </button>
+
+                <button 
+                  onClick={() => setCurrentPage('selection')}
+                  className={`${neuButtonClass} px-4 py-2 flex items-center gap-2 ${currentPage === 'selection' ? 'text-blue-500 font-bold' : ''}`}
+                >
+                  <Icon name="book-open" />
+                  <span className="hidden sm:inline">{t.selectSet}</span>
+                </button>
+
+                <button 
+                  onClick={() => setCurrentPage('analytics')}
+                  className={`${neuButtonClass} px-4 py-2 flex items-center gap-2 ${currentPage === 'analytics' ? 'text-blue-500 font-bold' : ''}`}
+                >
+                  <Icon name="bar-chart-3" />
+                  <span className="hidden sm:inline">{t.analytics}</span>
+                </button>
+
+                {/* Language Switcher */}
+                <button
+                  onClick={() => setLang(l => l === 'th' ? 'en' : 'th')}
+                  className={`${neuPillClass} px-4 py-2 flex items-center gap-1.5 text-blue-600 dark:text-blue-400`}
+                >
+                  <Icon name="globe" />
+                  <span className="uppercase tracking-wider">{lang}</span>
+                </button>
+
+                {/* Theme Toggle */}
+                <button
+                  onClick={() => setDarkMode(!darkMode)}
+                  className={`${neuPillClass} p-2.5 flex items-center justify-center`}
+                  title={t.themeSwitch}
+                >
+                  <Icon name={darkMode ? "sun" : "moon"} />
+                </button>
+              </div>
+
+            </div>
+          </header>
+
+          {/* PAGE ROUTER CONTENT */}
+          <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+            
+            {/* PAGE A: DASHBOARD */}
+            {currentPage === 'dashboard' && (
+              <div className="space-y-8 animate-fadeIn">
+                
+                {/* Hero / Overview Header */}
+                <div className={`${neuCardClass} relative overflow-hidden flex flex-col md:flex-row justify-between items-start md:items-center gap-6`}>
+                  <div className="space-y-2 z-10">
+                    <span className="inline-block px-3 py-1 text-xs rounded-full bg-blue-500/10 text-blue-500 font-semibold tracking-wide">
+                      BILINGUAL EXAM SYSTEM
+                    </span>
+                    <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
+                      {lang === 'th' ? 'เตรียมความพร้อมสอบปลายภาค' : 'Final Exam Mastery Center'}
+                    </h2>
+                    <p className="text-sm opacity-70 max-w-2xl">
+                      {lang === 'th' 
+                        ? 'ฝึกทำข้อสอบ 88 ข้อ ครอบคลุม Sensors, BLE, GATT, Expo, React Native, Android, iOS, Git & CLI'
+                        : 'Comprehensive practice for 88 questions covering Mobile Sensors, BLE, GATT, Expo Location, React Native, and Dev Tooling.'}
+                    </p>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-3 z-10">
+                    <button 
+                      onClick={() => {
+                        setSelectedSet('all');
+                        setExamMode('practice');
+                        startExamSession('all', 'practice');
+                      }}
+                      className={`${neuButtonClass} bg-blue-600 text-white dark:text-white px-6 py-3 font-semibold flex items-center gap-2 border-0 shadow-lg`}
+                    >
+                      <Icon name="play" />
+                      <span>{t.startPractice}</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Stats Grid */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+                  
+                  {/* Total Questions */}
+                  <div className={neuCardClass}>
+                    <div className="flex items-center justify-between opacity-70 mb-2">
+                      <span className="text-xs font-semibold tracking-wider uppercase">{t.totalQuestions}</span>
+                      <Icon name="file-text" className="w-5 h-5 text-blue-500" />
+                    </div>
+                    <div className="text-3xl font-extrabold">{overallStats.totalQuestions}</div>
+                    <p className="text-xs opacity-60 mt-1">4 {t.setsCount}</p>
+                  </div>
+
+                  {/* Answered */}
+                  <div className={neuCardClass}>
+                    <div className="flex items-center justify-between opacity-70 mb-2">
+                      <span className="text-xs font-semibold tracking-wider uppercase">{t.answeredCount}</span>
+                      <Icon name="check-circle-2" className="w-5 h-5 text-emerald-500" />
+                    </div>
+                    <div className="text-3xl font-extrabold">{overallStats.totalAnswered}</div>
+                    <p className="text-xs opacity-60 mt-1">{overallStats.totalAttemptsCount} {lang === 'th' ? 'รอบที่ส่งข้อสอบ' : 'Attempts Completed'}</p>
+                  </div>
+
+                  {/* Average Score */}
+                  <div className={neuCardClass}>
+                    <div className="flex items-center justify-between opacity-70 mb-2">
+                      <span className="text-xs font-semibold tracking-wider uppercase">{t.avgScore}</span>
+                      <Icon name="award" className="w-5 h-5 text-amber-500" />
+                    </div>
+                    <div className="text-3xl font-extrabold">{overallStats.avgScorePercent}%</div>
+                    <p className="text-xs opacity-60 mt-1">{lang === 'th' ? 'จากการทดสอบทั้งหมด' : 'Across all attempts'}</p>
+                  </div>
+
+                  {/* Accuracy Rate */}
+                  <div className={neuCardClass}>
+                    <div className="flex items-center justify-between opacity-70 mb-2">
+                      <span className="text-xs font-semibold tracking-wider uppercase">{t.accuracyRate}</span>
+                      <Icon name="target" className="w-5 h-5 text-indigo-500" />
+                    </div>
+                    <div className="text-3xl font-extrabold">{overallStats.accuracyRate}%</div>
+                    <p className="text-xs opacity-60 mt-1">{lang === 'th' ? 'อัตราความถูกต้อง' : 'Overall precision'}</p>
+                  </div>
+
+                </div>
+
+                {/* Continue Learning Banner (If active session saved) */}
+                {savedSession && (
+                  <div className={`${neuCardClass} border-l-4 border-l-blue-500 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4`}>
+                    <div className="flex items-center gap-4">
+                      <div className={`p-3 rounded-xl ${neuInsetClass} text-blue-500`}>
+                        <Icon name="bookmark" className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-base">{t.continueLearning}</h3>
+                        <p className="text-xs opacity-70">
+                          {lang === 'th' 
+                            ? `ชุดข้อสอบที่ ${savedSession.selectedSet} - ข้อที่ ${savedSession.currentIndex + 1} จาก ${savedSession.activeQuestions.length}`
+                            : `Set ${savedSession.selectedSet} - Question ${savedSession.currentIndex + 1} of ${savedSession.activeQuestions.length}`}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <button 
+                        onClick={resumeSavedSession}
+                        className={`${neuButtonClass} px-5 py-2.5 bg-blue-500 text-white font-semibold flex items-center gap-2 border-0`}
+                      >
+                        <Icon name="play" />
+                        <span>{t.continueExam}</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Exam Sets Overview */}
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-lg font-bold tracking-tight">{t.selectSet}</h3>
+                    <button 
+                      onClick={() => setCurrentPage('selection')} 
+                      className="text-xs font-semibold text-blue-500 hover:underline flex items-center gap-1"
+                    >
+                      <span>{lang === 'th' ? 'ดูเงื่อนไขเพิ่มเติม' : 'View All Filters'}</span>
+                      <Icon name="arrow-right" className="w-3 h-3" />
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {[1, 2, 3, 4].map(setId => {
+                      const count = rawExamData.filter(q => q.examSetId === setId).length;
+                      const setTitles = {
+                        1: t.set1,
+                        2: t.set2,
+                        3: t.set3,
+                        4: t.set4
+                      };
+                      
+                      return (
+                        <div key={setId} className={`${neuCardClass} flex flex-col justify-between gap-4 group hover:scale-[1.01] transition-transform`}>
+                          <div className="space-y-2">
+                            <div className="flex justify-between items-center">
+                              <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-gray-500/10 opacity-80">
+                                SET 0{setId}
+                              </span>
+                              <span className="text-xs opacity-60 font-medium">{count} {lang === 'th' ? 'ข้อ' : 'Questions'}</span>
+                            </div>
+                            <h4 className="font-bold text-base group-hover:text-blue-500 transition-colors">
+                              {setTitles[setId]}
+                            </h4>
+                          </div>
+
+                          <div className="pt-2 flex items-center justify-between border-t border-gray-500/10">
+                            <button
+                              onClick={() => startExamSession(setId.toString(), 'practice')}
+                              className={`${neuButtonClass} px-4 py-2 text-xs flex items-center gap-1.5`}
+                            >
+                              <Icon name="book-open" className="w-3.5 h-3.5" />
+                              <span>{t.practiceMode}</span>
+                            </button>
+
+                            <button
+                              onClick={() => startExamSession(setId.toString(), 'exam')}
+                              className={`${neuButtonClass} px-4 py-2 text-xs text-blue-500 font-semibold flex items-center gap-1.5`}
+                            >
+                              <Icon name="clock" className="w-3.5 h-3.5" />
+                              <span>{t.examMode}</span>
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+              </div>
+            )}
+
+            {/* PAGE B: EXAM SELECTION & MODE SETUP */}
+            {currentPage === 'selection' && (
+              <div className="space-y-8 animate-fadeIn max-w-4xl mx-auto">
+                
+                <div className={neuCardClass}>
+                  <h2 className="text-2xl font-bold mb-2">{t.selectSet}</h2>
+                  <p className="text-sm opacity-70 mb-6">
+                    {lang === 'th' ? 'เลือกชุดข้อสอบและโหมดการสอบที่ต้องการฝึกฝน' : 'Customize your practice parameters and select question filters.'}
+                  </p>
+
+                  <div className="space-y-6">
+                    
+                    {/* Exam Set Picker */}
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider mb-3 opacity-80">
+                        1. {lang === 'th' ? 'เลือกชุดข้อสอบ' : 'Select Question Set'}
+                      </label>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {[
+                          { id: 'all', name: t.allSets },
+                          { id: '1', name: t.set1 },
+                          { id: '2', name: t.set2 },
+                          { id: '3', name: t.set3 },
+                          { id: '4', name: t.set4 }
+                        ].map(s => (
+                          <div
+                            key={s.id}
+                            onClick={() => setSelectedSet(s.id)}
+                            className={`p-4 rounded-xl cursor-pointer transition-all flex items-center justify-between ${
+                              selectedSet === s.id ? neuInsetClass + ' border border-blue-500/40 text-blue-500 font-bold' : neuCardClass
+                            }`}
+                          >
+                            <span className="text-sm">{s.name}</span>
+                            {selectedSet === s.id && <Icon name="check" className="w-4 h-4 text-blue-500" />}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Mode Picker */}
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider mb-3 opacity-80">
+                        2. {lang === 'th' ? 'เลือกโหมดการฝึกฝน' : 'Select Exam Mode'}
+                      </label>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        
+                        {/* Practice Mode */}
+                        <div
+                          onClick={() => setExamMode('practice')}
+                          className={`p-5 rounded-2xl cursor-pointer transition-all space-y-2 ${
+                            examMode === 'practice' ? neuInsetClass + ' border border-blue-500/40' : neuCardClass
+                          }`}
+                        >
+                          <div className="flex justify-between items-center">
+                            <h4 className="font-bold text-base flex items-center gap-2">
+                              <Icon name="book-open" className="w-5 h-5 text-emerald-500" />
+                              {t.practiceMode}
+                            </h4>
+                            {examMode === 'practice' && <Icon name="check-circle-2" className="w-5 h-5 text-blue-500" />}
+                          </div>
+                          <p className="text-xs opacity-70">
+                            {lang === 'th' 
+                              ? 'แสดงเฉลยและคำอธิบายทันทีหลังตอบแต่ละข้อ ไม่จำกัดเวลา' 
+                              : 'Instant feedback & explanation after each submission without time limits.'}
+                          </p>
+                        </div>
+
+                        {/* Exam Mode */}
+                        <div
+                          onClick={() => setExamMode('exam')}
+                          className={`p-5 rounded-2xl cursor-pointer transition-all space-y-2 ${
+                            examMode === 'exam' ? neuInsetClass + ' border border-blue-500/40' : neuCardClass
+                          }`}
+                        >
+                          <div className="flex justify-between items-center">
+                            <h4 className="font-bold text-base flex items-center gap-2">
+                              <Icon name="clock" className="w-5 h-5 text-amber-500" />
+                              {t.examMode}
+                            </h4>
+                            {examMode === 'exam' && <Icon name="check-circle-2" className="w-5 h-5 text-blue-500" />}
+                          </div>
+                          <p className="text-xs opacity-70">
+                            {lang === 'th' 
+                              ? 'จำลองการสอบจริง มีตัวนับเวลา ซ่อนเฉลยจนกว่าจะส่งข้อสอบเสร็จ' 
+                              : 'Simulates official exam with countdown timer and hides answers until final submission.'}
+                          </p>
+                        </div>
+
+                      </div>
+                    </div>
+
+                    {/* Quick Filters */}
+                    <div>
+                      <label className="block text-xs font-bold uppercase tracking-wider mb-3 opacity-80">
+                        3. {lang === 'th' ? 'โหมดพิเศษ (ตัวกรองเฉพาะ)' : 'Special Question Filters'}
+                      </label>
+                      <div className="flex flex-wrap gap-3">
+                        <button
+                          onClick={() => {
+                            const incorrectIds = new Set();
+                            attempts.forEach(att => {
+                              Object.keys(att.userAnswersState).forEach(qId => {
+                                if (att.userAnswersState[qId].isCorrect === false) {
+                                  incorrectIds.add(qId);
+                                }
+                              });
+                            });
+                            const filterQs = rawExamData.filter(q => incorrectIds.has(q.id));
+                            if (filterQs.length === 0) {
+                              alert(lang === 'th' ? 'ไม่พบข้อสอบที่เคยตอบผิด' : 'No previously missed questions found.');
+                              return;
+                            }
+                            startExamSession('all', 'practice', filterQs);
+                          }}
+                          className={`${neuButtonClass} px-4 py-3 flex items-center gap-2 text-rose-500`}
+                        >
+                          <Icon name="x-circle" />
+                          <span>{t.incorrectOnly}</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Launch Button */}
+                    <div className="pt-4 flex justify-end">
+                      <button
+                        onClick={() => startExamSession(selectedSet, examMode)}
+                        className={`${neuButtonClass} bg-blue-600 text-white dark:text-white px-8 py-3.5 text-base font-bold flex items-center gap-2 border-0`}
+                      >
+                        <Icon name="play" className="w-5 h-5" />
+                        <span>{t.startPractice}</span>
+                      </button>
+                    </div>
+
+                  </div>
+                </div>
+
+              </div>
+            )}
+
+            {/* PAGE C: EXAM INTERFACE */}
+            {currentPage === 'exam' && activeQuestions.length > 0 && (
+              <div className="space-y-6 animate-fadeIn max-w-4xl mx-auto">
+                
+                {/* Top Control Bar */}
+                <div className={`${neuCardClass} flex flex-col sm:flex-row justify-between items-center gap-4 py-4`}>
+                  <div className="flex items-center gap-3">
+                    <span className="px-3 py-1 rounded-full bg-blue-500/10 text-blue-500 text-xs font-bold">
+                      {selectedSet === 'all' ? t.allSets : `SET 0${selectedSet}`}
+                    </span>
+                    <span className="text-sm font-semibold">
+                      {t.question} {currentIndex + 1} / {activeQuestions.length}
+                    </span>
+                  </div>
+
+                  {/* Timer if exam mode */}
+                  {examMode === 'exam' && (
+                    <div className={`px-4 py-2 rounded-xl flex items-center gap-2 font-mono font-bold text-amber-500 ${neuInsetClass}`}>
+                      <Icon name="clock" />
+                      <span>
+                        {Math.floor(timeLeft / 60).toString().padStart(2, '0')}:{(timeLeft % 60).toString().padStart(2, '0')}
+                      </span>
+                    </div>
+                  )}
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={saveActiveSessionState}
+                      className={`${neuButtonClass} px-3 py-1.5 text-xs flex items-center gap-1.5`}
+                      title="Save progress to continue later"
+                    >
+                      <Icon name="save" className="w-3.5 h-3.5" />
+                      <span>{lang === 'th' ? 'บันทึก' : 'Save'}</span>
+                    </button>
+
+                    <button
+                      onClick={() => toggleMarkForReview(activeQuestions[currentIndex].id)}
+                      className={`${neuButtonClass} px-3 py-1.5 text-xs flex items-center gap-1.5 ${
+                        userAnswers[activeQuestions[currentIndex].id]?.marked ? 'text-amber-500 font-bold' : ''
+                      }`}
+                    >
+                      <Icon name="bookmark" className="w-3.5 h-3.5" />
+                      <span>{t.markReview}</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Progress Bar */}
+                <div className={`w-full h-2 rounded-full overflow-hidden ${neuInsetClass}`}>
+                  <div 
+                    className="h-full bg-blue-500 transition-all duration-300"
+                    style={{ width: `${((currentIndex + 1) / activeQuestions.length) * 100}%` }}
+                  ></div>
+                </div>
+
+                {/* Question Card */}
+                {(() => {
+                  const q = activeQuestions[currentIndex];
+                  const qTranslation = q.translations[lang] || q.translations['en'];
+                  const uAns = userAnswers[q.id] || { selected: '', typed: '', isSubmitted: false, isCorrect: null };
+
+                  return (
+                    <div className={neuCardClass + " space-y-6"}>
+                      
+                      {/* Topic Tag & Type */}
+                      <div className="flex justify-between items-center text-xs opacity-70">
+                        <span className="font-semibold uppercase tracking-wider text-blue-500">
+                          {q.topic}
+                        </span>
+                        <span className="font-mono">
+                          {q.questionType === 'mcq' ? 'Multiple Choice' : 'Short Answer / CLI'}
+                        </span>
+                      </div>
+
+                      {/* Question Text */}
+                      <h3 className="text-lg sm:text-xl font-bold leading-relaxed">
+                        {qTranslation.questionText}
+                      </h3>
+
+                      {/* Multiple Choice Options */}
+                      {q.questionType === 'mcq' && (
+                        <div className="space-y-3 pt-2">
+                          {['A', 'B', 'C', 'D'].map((optionKey, idx) => {
+                            const optionText = qTranslation.options[idx];
+                            const isSelected = uAns.selected === optionKey;
+                            
+                            let styleClass = neuCardClass;
+                            if (examMode === 'practice' && uAns.isSubmitted) {
+                              if (optionKey === q.correctAnswer) {
+                                styleClass = `${neuInsetClass} border-2 border-emerald-500 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold`;
+                              } else if (isSelected && !uAns.isCorrect) {
+                                styleClass = `${neuInsetClass} border-2 border-rose-500 bg-rose-500/10 text-rose-600 dark:text-rose-400 font-semibold`;
+                              }
+                            } else if (isSelected) {
+                              styleClass = `${neuInsetClass} border-2 border-blue-500 text-blue-500 font-semibold`;
+                            }
+
+                            return (
+                              <div
+                                key={optionKey}
+                                onClick={() => handleSelectOption(q.id, optionKey)}
+                                className={`p-4 rounded-xl cursor-pointer transition-all flex items-start gap-4 ${styleClass}`}
+                              >
+                                <div className={`w-7 h-7 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 ${
+                                  isSelected ? 'bg-blue-500 text-white' : neuInsetClass
+                                }`}>
+                                  {optionKey}
+                                </div>
+                                <div className="text-sm sm:text-base leading-snug pt-0.5">
+                                  {optionText}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      {/* Short Answer / CLI Command Box */}
+                      {q.questionType === 'short' && (
+                        <div className="space-y-3 pt-2">
+                          <textarea
+                            value={uAns.typed || ''}
+                            onChange={(e) => handleTypeAnswer(q.id, e.target.value)}
+                            disabled={examMode === 'practice' && uAns.isSubmitted}
+                            placeholder={t.enterCliAnswer}
+                            rows="3"
+                            className={`w-full p-4 text-sm font-mono rounded-xl outline-none transition-all ${neuInsetClass}`}
+                          ></textarea>
+
+                          {examMode === 'practice' && uAns.isSubmitted && (
+                            <div className="p-3 rounded-xl bg-gray-500/10 text-xs font-mono">
+                              <span className="font-bold opacity-70">{t.correctAnswerStr}: </span>
+                              <span className="text-emerald-500 font-bold">{q.correctAnswer}</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Practice Mode Feedback Box */}
+                      {examMode === 'practice' && uAns.isSubmitted && (
+                        <div className={`p-5 rounded-xl space-y-2 border ${
+                          uAns.isCorrect ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-rose-500/10 border-rose-500/30'
+                        }`}>
+                          <div className="flex items-center gap-2 font-bold text-sm">
+                            <Icon name={uAns.isCorrect ? "check-circle" : "x-circle"} className={`w-5 h-5 ${uAns.isCorrect ? 'text-emerald-500' : 'text-rose-500'}`} />
+                            <span className={uAns.isCorrect ? 'text-emerald-500' : 'text-rose-500'}>
+                              {uAns.isCorrect ? t.correct : t.incorrect}
+                            </span>
+                          </div>
+                          <p className="text-xs sm:text-sm opacity-90 leading-relaxed pt-1">
+                            <strong className="block mb-1">{t.explanation}:</strong>
+                            {qTranslation.explanation}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Action Bar */}
+                      <div className="pt-4 flex flex-wrap items-center justify-between gap-3 border-t border-gray-500/10">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => clearAnswer(q)}
+                            className={`${neuButtonClass} px-3 py-2 text-xs text-gray-500`}
+                          >
+                            {t.clearAnswer}
+                          </button>
+                        </div>
+
+                        <div className="flex items-center gap-3">
+                          {examMode === 'practice' && !uAns.isSubmitted && (
+                            <button
+                              onClick={() => handleSubmitAnswer(q)}
+                              className={`${neuButtonClass} bg-emerald-600 text-white dark:text-white px-5 py-2 font-bold border-0`}
+                            >
+                              {t.submitAnswer}
+                            </button>
+                          )}
+
+                          <button
+                            disabled={currentIndex === 0}
+                            onClick={() => setCurrentIndex(prev => prev - 1)}
+                            className={`${neuButtonClass} px-4 py-2 flex items-center gap-1.5 ${currentIndex === 0 ? 'opacity-40 cursor-not-allowed' : ''}`}
+                          >
+                            <Icon name="chevron-left" />
+                            <span>{t.prev}</span>
+                          </button>
+
+                          {currentIndex < activeQuestions.length - 1 ? (
+                            <button
+                              onClick={() => setCurrentIndex(prev => prev + 1)}
+                              className={`${neuButtonClass} px-4 py-2 flex items-center gap-1.5`}
+                            >
+                              <span>{t.next}</span>
+                              <Icon name="chevron-right" />
+                            </button>
+                          ) : (
+                            <button
+                              onClick={finishExamSession}
+                              className={`${neuButtonClass} bg-blue-600 text-white dark:text-white px-6 py-2 font-bold border-0`}
+                            >
+                              {t.finishExam}
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                    </div>
+                  );
+                })()}
+
+                {/* Quick Question Navigation Matrix */}
+                <div className={neuCardClass}>
+                  <h4 className="text-xs font-bold uppercase tracking-wider mb-3 opacity-70">
+                    {lang === 'th' ? 'การนำทางข้อสอบทั้งหมด' : 'Question Quick Grid'}
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {activeQuestions.map((q, idx) => {
+                      const uAns = userAnswers[q.id];
+                      let btnStyle = neuButtonClass;
+                      
+                      if (idx === currentIndex) {
+                        btnStyle = `${neuInsetClass} border-2 border-blue-500 text-blue-500 font-bold`;
+                      } else if (uAns?.marked) {
+                        btnStyle = `${neuButtonClass} text-amber-500 font-bold`;
+                      } else if (uAns?.selected || uAns?.typed) {
+                        btnStyle = `${neuInsetClass} opacity-80`;
+                      }
+
+                      return (
+                        <button
+                          key={q.id}
+                          onClick={() => setCurrentIndex(idx)}
+                          className={`w-9 h-9 text-xs flex items-center justify-center font-mono ${btnStyle}`}
+                        >
+                          {idx + 1}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+              </div>
+            )}
+
+            {/* PAGE D: RESULT AND REVIEW */}
+            {currentPage === 'result' && attempts.length > 0 && (
+              <div className="space-y-8 animate-fadeIn max-w-4xl mx-auto">
+                
+                {(() => {
+                  const latest = attempts[0];
+                  
+                  return (
+                    <>
+                      {/* Performance Header Card */}
+                      <div className={neuCardClass + " text-center space-y-4 py-8"}>
+                        <div className="inline-flex p-4 rounded-full bg-blue-500/10 text-blue-500 mb-2">
+                          <Icon name="trophy" className="w-12 h-12" />
+                        </div>
+                        <h2 className="text-2xl sm:text-3xl font-extrabold">{t.summaryTitle}</h2>
+                        <p className="text-xs opacity-60">{latest.timestamp} • Mode: {latest.mode.toUpperCase()}</p>
+
+                        {/* Score Circle / Large stat */}
+                        <div className="py-4">
+                          <div className="text-5xl sm:text-6xl font-black text-blue-500 tracking-tight">
+                            {latest.percentage}%
+                          </div>
+                          <p className="text-sm opacity-70 font-medium mt-1">
+                            {latest.correctCount} {t.of} {latest.totalQuestions} {lang === 'th' ? 'ข้อที่ตอบถูก' : 'Questions Correct'}
+                          </p>
+                        </div>
+
+                        {/* Breakdown pills */}
+                        <div className="grid grid-cols-3 gap-3 max-w-md mx-auto text-xs font-semibold">
+                          <div className={`p-3 rounded-xl ${neuInsetClass} text-emerald-500`}>
+                            {t.correctCount}: {latest.correctCount}
+                          </div>
+                          <div className={`p-3 rounded-xl ${neuInsetClass} text-rose-500`}>
+                            {t.incorrectCount}: {latest.incorrectCount}
+                          </div>
+                          <div className={`p-3 rounded-xl ${neuInsetClass} text-gray-400`}>
+                            {t.unansweredCount}: {latest.unansweredCount}
+                          </div>
+                        </div>
+
+                        {/* Buttons */}
+                        <div className="pt-6 flex flex-wrap justify-center gap-3">
+                          <button
+                            onClick={() => startExamSession(latest.setId, latest.mode)}
+                            className={`${neuButtonClass} px-5 py-2.5 flex items-center gap-2`}
+                          >
+                            <Icon name="rotate-ccw" />
+                            <span>{t.retake}</span>
+                          </button>
+
+                          <button
+                            onClick={exportResultsCSV}
+                            className={`${neuButtonClass} bg-blue-600 text-white dark:text-white px-5 py-2.5 font-bold flex items-center gap-2 border-0`}
+                          >
+                            <Icon name="download" />
+                            <span>{t.exportCsv}</span>
+                          </button>
+
+                          <button
+                            onClick={() => setCurrentPage('dashboard')}
+                            className={`${neuButtonClass} px-5 py-2.5 flex items-center gap-2`}
+                          >
+                            <Icon name="home" />
+                            <span>{t.backToDash}</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Detailed Question-by-Question Review */}
+                      <div className="space-y-4">
+                        <h3 className="text-lg font-bold">{t.reviewAnswers}</h3>
+
+                        {latest.questions.map((q, idx) => {
+                          const qTrans = q.translations[lang] || q.translations['en'];
+                          const uState = latest.userAnswersState[q.id] || {};
+                          
+                          let isCorr = false;
+                          if (q.questionType === 'mcq') {
+                            isCorr = uState.selected === q.correctAnswer;
+                          } else {
+                            const typedNorm = normalizeAnswerStr(uState.typed);
+                            const correctNorm = normalizeAnswerStr(q.correctAnswer);
+                            isCorr = typedNorm === correctNorm || typedNorm.includes(correctNorm);
+                          }
+
+                          return (
+                            <div key={q.id} className={neuCardClass + " space-y-3 text-sm"}>
+                              <div className="flex justify-between items-center">
+                                <span className="font-bold opacity-70">Q{idx + 1}. {q.topic}</span>
+                                <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                                  isCorr ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500'
+                                }`}>
+                                  {isCorr ? t.correct : t.incorrect}
+                                </span>
+                              </div>
+
+                              <p className="font-semibold text-base">{qTrans.questionText}</p>
+
+                              <div className="p-3 rounded-xl bg-gray-500/5 space-y-1 text-xs">
+                                <div>
+                                  <span className="opacity-60">{t.yourAnswer}: </span>
+                                  <span className="font-mono font-bold">
+                                    {q.questionType === 'mcq' ? (uState.selected || '-') : (uState.typed || '-')}
+                                  </span>
+                                </div>
+                                <div>
+                                  <span className="opacity-60">{t.correctAnswerStr}: </span>
+                                  <span className="font-mono font-bold text-emerald-500">{q.correctAnswer}</span>
+                                </div>
+                              </div>
+
+                              <p className="text-xs opacity-80 leading-relaxed pt-1">
+                                <strong>{t.explanation}: </strong> {qTrans.explanation}
+                              </p>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </>
+                  );
+                })()}
+
+              </div>
+            )}
+
+            {/* PAGE E: STATISTICS DASHBOARD & ANALYTICS */}
+            {currentPage === 'analytics' && (
+              <div className="space-y-8 animate-fadeIn max-w-5xl mx-auto">
+                
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h2 className="text-2xl font-bold tracking-tight">{t.analytics}</h2>
+                    <p className="text-xs opacity-60">{lang === 'th' ? 'รายงานการทำข้อสอบเชิงลึก' : 'Performance trends and topics analytics'}</p>
+                  </div>
+
+                  <button
+                    onClick={exportResultsCSV}
+                    className={`${neuButtonClass} px-4 py-2 flex items-center gap-2 text-xs font-bold`}
+                  >
+                    <Icon name="download" />
+                    <span>{t.exportCsv}</span>
+                  </button>
+                </div>
+
+                {/* Overall Summary Grid */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className={neuCardClass}>
+                    <p className="text-xs opacity-60">{lang === 'th' ? 'จำนวนรอบที่สอบ' : 'Attempts'}</p>
+                    <div className="text-2xl font-bold mt-1">{attempts.length}</div>
+                  </div>
+                  <div className={neuCardClass}>
+                    <p className="text-xs opacity-60">{t.avgScore}</p>
+                    <div className="text-2xl font-bold mt-1 text-blue-500">{overallStats.avgScorePercent}%</div>
+                  </div>
+                  <div className={neuCardClass}>
+                    <p className="text-xs opacity-60">{t.accuracyRate}</p>
+                    <div className="text-2xl font-bold mt-1 text-emerald-500">{overallStats.accuracyRate}%</div>
+                  </div>
+                  <div className={neuCardClass}>
+                    <p className="text-xs opacity-60">{t.answeredCount}</p>
+                    <div className="text-2xl font-bold mt-1">{overallStats.totalAnswered}</div>
+                  </div>
+                </div>
+
+                {/* Attempts History Table */}
+                <div className={neuCardClass + " space-y-4"}>
+                  <h3 className="font-bold text-base">{t.history}</h3>
+
+                  {attempts.length === 0 ? (
+                    <p className="text-xs opacity-50 text-center py-6">
+                      {lang === 'th' ? 'ยังไม่มีประวัติการทำข้อสอบ' : 'No attempt history recorded yet.'}
+                    </p>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-xs">
+                        <thead>
+                          <tr className="border-b border-gray-500/10 opacity-70">
+                            <th className="p-3">Date</th>
+                            <th className="p-3">Set</th>
+                            <th className="p-3">Mode</th>
+                            <th className="p-3">Score</th>
+                            <th className="p-3">Accuracy</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {attempts.map(att => (
+                            <tr key={att.id} className="border-b border-gray-500/5 hover:bg-gray-500/5">
+                              <td className="p-3">{att.timestamp}</td>
+                              <td className="p-3">Set {att.setId}</td>
+                              <td className="p-3 uppercase font-semibold">{att.mode}</td>
+                              <td className="p-3 font-bold">{att.correctCount}/{att.totalQuestions}</td>
+                              <td className="p-3 font-bold text-blue-500">{att.percentage}%</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+
+              </div>
+            )}
+
+          </main>
+
+          {/* FOOTER */}
+          <footer className="py-6 text-center text-xs opacity-50 border-t border-gray-500/10 mt-auto">
+            <p>EXAM SPACE • Bilingual Practice Web App • Mobile Engineering Course 2026</p>
+          </footer>
+
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
